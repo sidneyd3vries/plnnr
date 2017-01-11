@@ -4,10 +4,10 @@
 
 ### Activity flowcharts
 
-#### Simple no chat version
+#### Single pinboard version
 ![](doc/No_group_flowchart.png)
 
-#### Version with chat
+#### Version with groups and multiple pinboards
 ![](doc/Group_flowchart.png)
 
 ### Classes
