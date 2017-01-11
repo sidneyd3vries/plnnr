@@ -15,7 +15,7 @@
 #### Log-in class
 Class where all the signing in is done. Will be using the google signup methods, also firebase for storing the list (however this list could also be saved using shared preferences). In the first version of the app this activity is linked with the list activity, however later on this activity will link to the chat overview activity. 
 
-#### List class
+#### Pinboard class
 This activity shows an overview of plans that are made. This list is stored using firebase. From this ativity it is possible to go to the map activity, where the user can create a plan to add to the list.
 
 #### Map class
@@ -27,11 +27,8 @@ The Helper Class will contain all methods that are used multiple times, so that 
 ### API class
 All code that is mostly copy pasted from the API documentation will be put here. This is done to keep code clear and separate own written code and copy pasted code. Could also be divided in multiple classes if the methods are categorizable. 
 
-#### Chat overview class
-If implemented this class will get data from Firebase to show the chats the logged in user is part of. Here the user can make new chats and invite people. This activity links to the single chat class.
-
-#### Single chat class
-Here all data from the linked firebase subdatabase is displayed in the form of a chat. This activity links to the list activity, where the list linked to the chat will be shown.
+#### Group overview class
+If implemented this class will display data from Firebase to show the groups the logged in user is part of. Here the user can make new groups. This activity links to the pinboard class.
 
 ### API's
 
