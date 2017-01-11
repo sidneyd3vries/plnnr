@@ -13,14 +13,11 @@ The problem this app will solve is that it makes it easier to plan things in a g
 #### Login screen
 ![](doc/Login.png)
 
-#### Chat overview
-![](doc/Chats.png)
+#### Group overview
+![](doc/Groupss.png)
 
-#### Single chat
-![](doc/Single chat.png)
-
-#### List of plans
-![](doc/List.png)
+#### Pinboard overview
+![](doc/Pinboard.png)
 
 #### Map interface
 ![](doc/Map.png)
