@@ -35,7 +35,7 @@ The parts of the application are most importantly the chat overview interface. H
 Possible problems I could run into is that the google maps api not giving all the data I need, and in this case another api could be used to get the precise data I need. For example restaurants and bars are a separate category for maps, but something specific like a swimming pool isn’t. This could however be solved by also giving the option to fill something in yourself, instead of choosing from categories.
 
 ### Possible extra features
-An extra feature to add is to create a route between all selected places.
+An extra feature to add is to create a route between all selected places. Cities from longitude and latitude ( not clicking on map )
 
 ### Compared to other apps
 A lot of the functionality of this app is already in the standard google maps, however I found that I could only search nearby my current location, and not from a point on a map, which makes it difficult to make plans from home.  Also in the case of wanting to go to multiple places I needed to search for everything apart, remember the places in my head to see if they were relatively close together and sending the plan to a group chat took more effort than it should have taken, this and probably the implemented chat feature makes it different from google maps, which is the app that resembles my app idea the most.
