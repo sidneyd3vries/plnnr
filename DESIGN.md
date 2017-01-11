@@ -36,7 +36,7 @@ Here all data from the linked firebase subdatabase is displayed in the form of a
 ### API's
 
 #### Google Maps Places API
-As said earlier the app is going to use the Places API, where the data received can be json or XML. I will probablu chose json but this could change if the XML is more useful. This search query contains the location, the range, the type and or name/keywords.
+As said earlier the app is going to use the Places API, where the data received can be json or XML. I will probably choose json but this could change if the XML is more useful. This search query contains the location, the range, the type and or name/keywords.
 
 #### Firebase
 Firebase is used to save the list of plans. In the non chat version of the app this will be saved as a single column database, where every row is a plan. In the chat version of the app 2 columns are needed because it also has to count the votes of users. The chat database will have two columns, one with the name of the sender, and one with the message. This will be part of the bigger chat overview database, where there will be multiple columns, one with the name of the chat, one with the names of people in the chat, and the id of teh chat, which is linked to the chat database. 
