@@ -14,7 +14,7 @@ The problem this app will solve is that it makes it easier to plan things in a g
 ![](doc/Login.png)
 
 #### Group overview
-![](doc/Groupss.png)
+![](doc/Groups.png)
 
 #### Pinboard overview
 ![](doc/Pinboard.png)
