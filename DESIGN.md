@@ -5,10 +5,10 @@
 ### Activity flowcharts
 
 #### Simple no chat version
-![](doc/No chat.png)
+![](doc/No_group_flowchart.png)
 
 #### Version with chat
-![](doc/Chat flowchart.png)
+![](doc/Group_flowchart.png)
 
 ### Classes
 
