@@ -17,7 +17,7 @@ The problem this app will solve is that it makes it easier to plan things in a g
 ![](doc/Chats.png)
 
 #### Single chat
-![](doc/Chat.png)
+![](doc/Single chat.png)
 
 #### List of plans
 ![](doc/List.png)
