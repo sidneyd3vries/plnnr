@@ -3,15 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!--
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/sign_out"
-        android:id="@+id/sign_out_button"/>
-        -->
-
     <ListView
         android:id="@+id/list"
         android:layout_height="wrap_content"
@@ -22,13 +13,8 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/sign_out"
-        android:id="@+id/sign_out_button"
-        android:layout_alignParentBottom="true"/>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="new"
+        android:text="@string/plus"
+        android:textSize="30sp"
         android:id="@+id/add_plan_button"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"/>

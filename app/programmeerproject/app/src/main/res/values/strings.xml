@@ -3,4 +3,6 @@
     <string name="loading">loading</string>
     <string name="sign_out">sign out</string>
     <string name="signed_out">signed out</string>
+    <string name="groups">Groups</string>
+    <string name="plus">+</string>
 </resources>

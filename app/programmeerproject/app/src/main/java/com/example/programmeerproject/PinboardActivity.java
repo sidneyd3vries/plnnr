@@ -39,15 +39,8 @@ public class PinboardActivity extends AppCompatActivity implements
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
 
-        findViewById(R.id.sign_out_button).setOnClickListener(this);
         findViewById(R.id.add_plan_button).setOnClickListener(this);
 
-        if (user == null) {
-            Intent intent = getIntent();
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            finish();
-            startActivity(intent);
-        }
         configSignInBuildClient();
 
         listView = (ListView) findViewById(R.id.list);
@@ -75,10 +68,6 @@ public class PinboardActivity extends AppCompatActivity implements
 
                 String  itemValue    = (String) listView.getItemAtPosition(position);
 
-//                Toast.makeText(getApplicationContext(),
-//                        "Position :"+itemPosition+"  ListItem : " +itemValue , Toast.LENGTH_LONG)
-//                        .show();
-
             }
 
         });
@@ -96,21 +85,6 @@ public class PinboardActivity extends AppCompatActivity implements
         if (mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
-    }
-
-    private void signOut() {
-        // Firebase sign out
-        FirebaseAuth.getInstance().signOut();
-        // Google sign out
-        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
-                new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
-                        Intent intent = new Intent(PinboardActivity.this, SignInActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(intent);
-                    }
-                });
     }
 
     public void configSignInBuildClient() {
@@ -137,11 +111,6 @@ public class PinboardActivity extends AppCompatActivity implements
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.sign_out_button:
-                Toast.makeText(getApplicationContext(), getString(R.string.signed_out), Toast.LENGTH_SHORT).show();
-                signOut();
-                finish();
-                break;
             case R.id.add_plan_button:
                 Intent intent = new Intent(this, MapsActivity.class);
                 startActivity(intent);

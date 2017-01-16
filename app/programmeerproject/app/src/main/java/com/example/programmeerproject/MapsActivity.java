@@ -18,6 +18,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -29,9 +30,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         // Add a marker in Amsterdam and move the camera
-        LatLng amsterdam = new LatLng(5, 52);
+        LatLng amsterdam = new LatLng(52.370216, 4.895168);
         mMap.addMarker(new MarkerOptions().position(amsterdam).title("Marker in Amsterdam"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(amsterdam));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(amsterdam, 14));
     }
 }
 
