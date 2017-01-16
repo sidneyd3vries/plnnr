@@ -9,3 +9,6 @@ Spent most of the day trying to update google play services and getting google m
 
 # Day 5
 Brainstorming about the structure of my database, might change later because the demo gave ideas to change the pinboard system.
+
+# Day 6
+Found out part of the api I wanted to use is deprecated, now looking for/ thinking about alternatives. Fixed bug that froze app on login. Fixed maps fragment not showing correct location on load.
