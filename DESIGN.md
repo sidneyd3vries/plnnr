@@ -4,8 +4,8 @@
 
 ### Activity flowcharts
 
-#### Single pinboard version
-![](doc/No_group_flowchart.png)
+<!--#### Single pinboard version
+![](doc/No_group_flowchart.png)-->
 
 #### Version with groups and multiple pinboards
 ![](doc/Group_flowchart.png)
@@ -22,7 +22,7 @@ This activity shows an overview of plans that are made. This list is stored usin
 Using the Google Maps Places API it is possible to get placeID's from selected places and store them. Using the getplacebyId function from the api it is possible to recieve information you want from the place. The eventual plan made here is saved on firebase so it can be accessed from the List Class. The user can look for categories of places, or look for a certain name. The list of all places that match the criteria are saved and later used to create the final plan that will be added to the plan list. 
 
 #### Helper class(es)
-The Helper Class will contain all methods that are used multiple times, so that you wont have the same method defined in multiple activities. Could be divided in multiple classes if the methods are categorizable. 
+The Helper Class will contain all methods that are used multiple times, so that you wont have the same method defined in multiple activities. Could be divided in multiple classes if the methods are categorizable. This also contains the asynctask that is used in querying the API
 
 ### API class
 All code that is mostly copy pasted from the API documentation will be put here. This is done to keep code clear and separate own written code and copy pasted code. Could also be divided in multiple classes if the methods are categorizable. 
@@ -36,4 +36,5 @@ If implemented this class will display data from Firebase to show the groups the
 As said earlier the app is going to use the Places API, where the data received can be json or XML. I will probably choose json but this could change if the XML is more useful. This search query contains the location, the range, the type and or name/keywords.
 
 #### Firebase
-Firebase is used to save the list of plans. In the non chat version of the app this will be saved as a single column database, where every row is a plan. In the chat version of the app 2 columns are needed because it also has to count the votes of users. The chat database will have two columns, one with the name of the sender, and one with the message. This will be part of the bigger chat overview database, where there will be multiple columns, one with the name of the chat, one with the names of people in the chat, and the id of teh chat, which is linked to the chat database. 
+Firebase is used to save the list of plans. In the non chat version of the app this will be saved as a single column database, where every row is a plan. <!--In the chat version of the app 2 columns are needed because it also has to count the votes of users. The chat database will have two columns, one with the name of the sender, and one with the message. This will be part of the bigger chat overview database, where there will be multiple columns, one with the name of the chat, one with the names of people in the chat, and the id of teh chat, which is linked to the chat database. -->
+![](doc/dbstruc.jpg)
