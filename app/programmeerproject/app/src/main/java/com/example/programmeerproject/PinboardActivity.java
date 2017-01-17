@@ -48,9 +48,6 @@ public class PinboardActivity extends AppCompatActivity implements
         // Static data, to be replaced
         String[] values = new String[] { "Place 1 -> Place 2 -> Place 3",
                 "Place 4 -> Place 5 -> Place 6",
-                "Place 7 -> Place 8 -> Place 9",
-                "Place 1 -> Place 6 -> Place 8",
-                "Place 4 -> Place 2 -> Place 9",
         };
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
