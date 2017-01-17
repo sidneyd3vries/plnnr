@@ -14,3 +14,4 @@ Brainstorming about the structure of my database, might change later because the
 Found out part of the api I wanted to use is deprecated, now looking for/ thinking about alternatives. Fixed bug that froze app on login. Fixed maps fragment not showing correct location on load. Api querying works, should now be able to add all search results to the map
 
 # Day 7
+API key stopped working so I had to spend 2 hours fixing it. Linked views to make a query. Data is being retrieved but due the 2 hours wasted the data is not yet processed and out in to the map. 
