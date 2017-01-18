@@ -15,3 +15,6 @@ Found out part of the api I wanted to use is deprecated, now looking for/ thinki
 
 # Day 7
 API key stopped working so I had to spend 2 hours fixing it. Linked views to make a query. Data is being retrieved but due the 2 hours wasted the data is not yet processed and out in to the map. 
+
+# Day 8
+Changed api after finding out manually asking for data was too much work. New query gives more information so I can do more. Started working on sending places to firebase, but the change in query for the api made this stop working so I am now rewriting it. Also started with overflow menu's and a small start with the design of the app.

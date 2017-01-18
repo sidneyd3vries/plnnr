@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/background">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -14,25 +15,6 @@
             android:orientation="horizontal"
             android:id="@+id/inputlayout"
             android:baselineAligned="false">
-
-            <!--<LinearLayout-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:orientation="vertical"-->
-                <!--android:id="@+id/selection"-->
-                <!--android:paddingStart="20dp"-->
-                <!--android:paddingTop="2dp"-->
-                <!--android:paddingBottom="2dp"-->
-                <!--android:layout_weight="1">-->
-                <!--<EditText-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="40dp"-->
-                    <!--android:hint="From:"/>-->
-                <!--<EditText-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="40dp"-->
-                    <!--android:hint="To:"/>-->
-            <!--</LinearLayout>-->
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -68,11 +50,13 @@
                 <Spinner
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
-                    android:id="@+id/fromspinner"/>
+                    android:id="@+id/fromspinner"
+                    android:background="@color/violet"/>
                 <Spinner
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
-                    android:id="@+id/tospinner"/>
+                    android:id="@+id/tospinner"
+                    android:background="@color/green"/>
             </LinearLayout>
 
         </LinearLayout>
