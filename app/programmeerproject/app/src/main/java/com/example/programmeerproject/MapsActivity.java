@@ -8,7 +8,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -25,6 +27,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.vision.text.Text;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -116,6 +119,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         result = asyncTask.execute(url).get();
 
+        Log.d("QUERYJSON", result);
+
         return result;
 
     }
@@ -142,15 +147,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public String getId(JSONObject json) throws JSONException {
-        String id;
-        id = json.getString("place_id");
+        String id = json.getString("place_id");
         return id;
     }
 
+    public String getRating(JSONObject json) throws JSONException {
+        if (json.has("rating")) {
+            Double rating = json.getDouble("rating");
+            return String.valueOf(rating);
+        } else {
+            return "No ratings yet";
+        }
+    }
+
     public String getName(JSONObject json) throws JSONException {
-        String name;
-        name = json.getString("name");
+        String name = json.getString("name");
         return name;
+    }
+
+
+    public String getAddress(JSONObject json) throws JSONException {
+        String address = json.getString("formatted_address");
+        return address;
     }
 
 
@@ -161,9 +179,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             try {
                 JSONObject object = array.getJSONObject(n);
 
-                mMap.addMarker(new MarkerOptions().position(getCoordinates(object))
+                Marker marker = mMap.addMarker(new MarkerOptions().position(getCoordinates(object))
                         .title(getName(object))
                         .icon(BitmapDescriptorFactory.defaultMarker(color)));
+
+                marker.setTag(object);
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -185,6 +205,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 "&key=" + apikey;
     }
 
+    public void showDetails(Marker marker) throws JSONException{
+        JSONObject data = (JSONObject) marker.getTag();
+        String name = getName(data);
+        String address = getAddress(data);
+        //String rating = getRating(data);
+
+        View layout = findViewById(R.id.detailspopup);
+        TextView namev = (TextView) findViewById(R.id.name);
+        TextView addressv = (TextView) findViewById(R.id.address);
+        //TextView ratingv = (TextView) findViewById(R.id.rating);
+
+        namev.setText(name);
+        addressv.setText(address);
+        //ratingv.setText(rating);
+
+        layout.setVisibility(View.VISIBLE);
+    }
+
+    public void hideDetails() {
+        View layout = findViewById(R.id.detailspopup);
+        layout.setVisibility(View.INVISIBLE);
+    }
+
     @Override
     public void onMapClick(LatLng point) {
         mMap.clear();
@@ -193,6 +236,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         lat = point.latitude;
         lng = point.longitude;
+
+        hideDetails();
     }
 
     @Override
@@ -208,13 +253,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(amsterdam, 14));
 
         // Marker click listener
-//        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-//            @Override
-//            public boolean onMarkerClick(Marker marker) {
-//                showTitle(marker.getTitle());
-//                return true;
-//            }
-//        });
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                try {
+                    showDetails(marker);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        });
     }
 
     @Override
