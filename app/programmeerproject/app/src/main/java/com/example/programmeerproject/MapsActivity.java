@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import com.google.android.gms.vision.text.Text;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -36,6 +37,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
@@ -188,7 +192,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return address;
     }
 
-    public void addMarkers(JSONArray array, float color) {
+    public void addMarkers(JSONArray array, float color, String dir) {
 
         for(int n = 0; n < array.length(); n++)
         {
@@ -198,7 +202,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Marker marker = mMap.addMarker(new MarkerOptions().position(getCoordinates(object))
                         .title(getName(object))
                         .icon(BitmapDescriptorFactory.defaultMarker(color)));
-
+                object.put("direction", dir);
                 marker.setTag(object);
 
             } catch (JSONException e) {
@@ -225,17 +229,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         JSONObject data = (JSONObject) marker.getTag();
         String name = getName(data);
         String address = getAddress(data);
-        //String rating = getRating(data);
+        String direction = data.getString("direction");
 
         View layout = findViewById(R.id.detailspopup);
         findViewById(R.id.addbutton).setOnClickListener(this);
         TextView namev = (TextView) findViewById(R.id.name);
         TextView addressv = (TextView) findViewById(R.id.address);
-        //TextView ratingv = (TextView) findViewById(R.id.rating);
+        TextView directionv = (TextView) findViewById(R.id.direction);
 
         namev.setText(name);
         addressv.setText(address);
-        //ratingv.setText(rating);
+        directionv.setText(direction);
 
         layout.setVisibility(View.VISIBLE);
     }
@@ -283,11 +287,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    public void writeToDB(String place, int count){
+    public void writeToDB(String place, int count, String dir){
         setDatabaseListener();
         // Write json to database
         if (!keyList.contains(place)) {
-            mDatabase.child("users/" + user.getUid()).child(place).setValue(count);
+            mDatabase.child("users/" + user.getUid() + "/" + dir).child(place).setValue(count);
             Toast.makeText(getApplicationContext(), "Added!", Toast.LENGTH_SHORT).show();
         } else {
             //If item already in database
@@ -371,16 +375,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         JSONArray fromArray = getResults(from);
                         JSONArray toArray = getResults(to);
 
-                        addMarkers(fromArray, 270);
-                        addMarkers(toArray, 120);
+                        addMarkers(fromArray, 270, "from");
+                        addMarkers(toArray, 120, "to");
                     } catch (ExecutionException | InterruptedException | JSONException e) {
                         e.printStackTrace();
                     }
                 }
                 break;
             case R.id.addbutton:
+                //TODO can still add same item
                 TextView namev = (TextView) findViewById(R.id.name);
-                writeToDB((String) namev.getText(), 0);
+                TextView dirv = (TextView) findViewById(R.id.direction);
+                writeToDB((String) namev.getText(), 0, (String) dirv.getText());
         }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -19,55 +20,74 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class PinboardActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         View.OnClickListener  {
 
-    FirebaseUser user;
+    private DatabaseReference mDatabase;
+    private FirebaseUser user;
     private GoogleApiClient mGoogleApiClient;
 
-    ListView listView ;
+    ListView fromListView;
+    ListView toListView;
+
+    ArrayList<String> receivedData = new ArrayList<>();
+    ArrayList<String> keyList = new ArrayList<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pinboard_activity);
 
+        fromListView = (ListView) findViewById(R.id.fromlist);
+        toListView = (ListView) findViewById(R.id.tolist);
+
         // Get current user
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         findViewById(R.id.add_plan_button).setOnClickListener(this);
 
         configSignInBuildClient();
 
-        listView = (ListView) findViewById(R.id.list);
+        setDatabaseListenerForListView("from", fromListView);
 
-        // Static data, to be replaced
-        String[] values = new String[] { "Place 1 -> Place 2 -> Place 3",
-                "Place 4 -> Place 5 -> Place 6",
-        };
+        setDatabaseListenerForListView("to", toListView);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+    }
+
+    public void setUpListView(ArrayList<String> values, final ListView view) {
+
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, values);
 
-        listView.setAdapter(adapter);
+        view.setAdapter(adapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> parent, View view,
+            public void onItemClick(AdapterView<?> parent, View vview,
                                     int position, long id) {
 
                 int itemPosition     = position;
 
-                String  itemValue    = (String) listView.getItemAtPosition(position);
+                String  itemValue    = (String) view.getItemAtPosition(position);
 
             }
 
         });
+
     }
 
     @Override
@@ -82,6 +102,33 @@ public class PinboardActivity extends AppCompatActivity implements
         if (mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
+    }
+
+    public void setDatabaseListenerForListView(String dir, final ListView view) {
+        final ArrayList<String> keys = new ArrayList<>();
+        final ArrayList<String> values = new ArrayList<>();
+        // Database reader
+        DatabaseReference personalDb = mDatabase.child("users").child(user.getUid() + "/" + dir);
+        personalDb.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    keys.clear();
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        values.add(String.valueOf(child.getValue()));
+                        keys.add(child.getKey());
+                    }
+                    setUpListView(keys, view);
+                } else {
+                    Log.d("dbListener", "no items for user yet");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("MainActivity", String.valueOf(databaseError));
+            }
+        });
     }
 
     public void configSignInBuildClient() {

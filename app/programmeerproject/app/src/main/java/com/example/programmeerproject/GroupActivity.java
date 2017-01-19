@@ -25,6 +25,8 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     FirebaseUser user;
     private GoogleApiClient mGoogleApiClient;
 
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
