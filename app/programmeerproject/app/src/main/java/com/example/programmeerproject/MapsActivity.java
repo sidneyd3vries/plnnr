@@ -1,6 +1,5 @@
 package com.example.programmeerproject;
 
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -8,16 +7,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -27,12 +22,20 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.vision.text.Text;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
@@ -42,22 +45,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         View.OnClickListener,
         GoogleApiClient.OnConnectionFailedListener {
 
-    String test = "{'geometry': {'location': {'lat': 52.373925, 'lng': 4.89635}}, 'place_id': 'ChIJ9do5m7gJxkcRHy7o8MDGAHI', 'id': '36d153440484164e20105c38a28b0c1b420de9b8', 'reference': 'CmRRAAAALfAgQCk5Om2IMeBXXwVCk3T09aldhUu-qhBpOdEkOCeefugHf6FkueixOjVbfV9rQvLfDc8VwlPJspBBzlkTvTQ4wKK6ovcvBIBp2NhPdEerpNuD2g5Fk23WUfyV6s1HEhDzesFzcJz6At6skVMblO71GhT7fwnPqtTiOKkZnD0ghsOdrRszgw'}" ;
-
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
-    String radarquery, textquery, json, query;
+
+    private DatabaseReference mDatabase;
+    private FirebaseUser user;
+
     public Double lng, lat;
     int rad;
-    String type, keyword, apikey, fromitem, toitem, fromquery, toquery, globaltitle;
+    String apikey, fromitem, toitem, fromquery, toquery;
     Spinner fromspinner, tospinner;
-    String[]types = {"amusement_park", "aquarium", "art_gallery", "bar", "book_store", "bowling_alley", "cafe", "campground", "casino", "department_store", "movie_theater", "museum", "night_club", "park", "restaurant", "shopping_mall", "zoo"};
+    String[]types = {"amusement_park", "aquarium",
+                     "art_gallery", "bar", "book_store",
+                     "bowling_alley", "cafe", "campground",
+                     "casino", "department_store", "movie_theater",
+                     "museum", "night_club", "park",
+                     "restaurant", "shopping_mall", "zoo"};
 
+    ArrayList<String> receivedData = new ArrayList<>();
+    ArrayList<String> keyList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
+
+        // Get Firebase instance, database and current user
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        user = mAuth.getCurrentUser();
 
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
@@ -67,6 +83,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .build();
 
         setUpSpinners();
+
+        setDatabaseListener();
 
         findViewById(R.id.gobutton).setOnClickListener(this);
 
@@ -94,24 +112,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mGoogleApiClient.disconnect();
     }
 
-    public void showTitle(String id) {
-        /* maybe redundant because of textsearch instead of radarsearch*/
-                Places.GeoDataApi.getPlaceById(mGoogleApiClient, id)
-                .setResultCallback(new ResultCallback<PlaceBuffer>() {
-                    @Override
-                    public void onResult(PlaceBuffer places) {
-                        if (places.getStatus().isSuccess() && places.getCount() > 0) {
-                            final Place myPlace = places.get(0);
-                            String title = String.valueOf(myPlace.getName());
-                            Toast.makeText(MapsActivity.this, title, Toast.LENGTH_SHORT).show();
-                            Log.d("FOUND PLACE", String.valueOf(myPlace.getName()));
-                        } else {
-                            Log.d("getTitle", "Place not found " + places.getStatus().toString());
-                        }
-                        places.release();
-                    }
-                });
-    }
+//    public void showTitle(String id) {
+//        /* maybe redundant because of textsearch instead of radarsearch*/
+//                Places.GeoDataApi.getPlaceById(mGoogleApiClient, id)
+//                .setResultCallback(new ResultCallback<PlaceBuffer>() {
+//                    @Override
+//                    public void onResult(PlaceBuffer places) {
+//                        if (places.getStatus().isSuccess() && places.getCount() > 0) {
+//                            final Place myPlace = places.get(0);
+//                            String title = String.valueOf(myPlace.getName());
+//                            Toast.makeText(MapsActivity.this, title, Toast.LENGTH_SHORT).show();
+//                            Log.d("FOUND PLACE", String.valueOf(myPlace.getName()));
+//                        } else {
+//                            Log.d("getTitle", "Place not found " + places.getStatus().toString());
+//                        }
+//                        places.release();
+//                    }
+//                });
+//    }
 
     public String queryJson(String url) throws ExecutionException, InterruptedException {
         MyAsyncTask asyncTask = new MyAsyncTask();
@@ -165,12 +183,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return name;
     }
 
-
     public String getAddress(JSONObject json) throws JSONException {
         String address = json.getString("formatted_address");
         return address;
     }
-
 
     public void addMarkers(JSONArray array, float color) {
 
@@ -212,6 +228,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //String rating = getRating(data);
 
         View layout = findViewById(R.id.detailspopup);
+        findViewById(R.id.addbutton).setOnClickListener(this);
         TextView namev = (TextView) findViewById(R.id.name);
         TextView addressv = (TextView) findViewById(R.id.address);
         //TextView ratingv = (TextView) findViewById(R.id.rating);
@@ -262,6 +279,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     e.printStackTrace();
                 }
                 return true;
+            }
+        });
+    }
+
+    public void writeToDB(String place, int count){
+        setDatabaseListener();
+        // Write json to database
+        if (!keyList.contains(place)) {
+            mDatabase.child("users/" + user.getUid()).child(place).setValue(count);
+            Toast.makeText(getApplicationContext(), "Added!", Toast.LENGTH_SHORT).show();
+        } else {
+            //If item already in database
+            Toast.makeText(getApplicationContext(), "Item already exists", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void setDatabaseListener() {
+        // Database reader
+        DatabaseReference personalDb = mDatabase.child("users").child(user.getUid());
+        personalDb.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    keyList.clear();
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        receivedData.add(String.valueOf(child.getValue()));
+                        keyList.add(child.getKey());
+                    }
+                } else {
+                    Log.d("dbListener", "no items for user yet");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("MainActivity", String.valueOf(databaseError));
             }
         });
     }
@@ -325,6 +378,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
                 break;
+            case R.id.addbutton:
+                TextView namev = (TextView) findViewById(R.id.name);
+                writeToDB((String) namev.getText(), 0);
         }
     }
 }
