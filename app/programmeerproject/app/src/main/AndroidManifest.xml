@@ -33,6 +33,9 @@
             android:name=".GroupActivity"
             android:theme="@style/Titlebar"
             android:label="My groups"></activity>
+        <activity
+            android:name=".NewGroupDialog"
+            android:theme="@android:style/Theme.DeviceDefault.Light.Dialog"></activity>
     </application>
 
 </manifest>

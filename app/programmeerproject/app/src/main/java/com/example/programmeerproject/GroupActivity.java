@@ -18,14 +18,16 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class GroupActivity extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
 
     ListView listView;
-    FirebaseUser user;
+
     private GoogleApiClient mGoogleApiClient;
-
-
+    private DatabaseReference mDatabase;
+    private FirebaseUser user;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -35,11 +37,16 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         // Get current user
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         listView = (ListView) findViewById(R.id.list);
 
+        // Set button listeners
         findViewById(R.id.sign_out_button).setOnClickListener(this);
+        findViewById(R.id.new_group_button).setOnClickListener(this);
 
+        // Sign-in is sometimes slower than activity switch
+        // So it keeps looping untill the sign-in is processed
         if (user == null) {
             Intent intent = getIntent();
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -47,9 +54,13 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
             startActivity(intent);
         }
 
+        // Update Uid's for use in groups
+        updateUserIds();
+
         configSignInBuildClient();
 
-        // Static data, to be replaced
+        // TODO Static data, to be replaced
+        // TODO Data is gotten from user tab
         String[] values = new String[] { "Group 1" };
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
@@ -70,6 +81,10 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
             }
 
         });
+    }
+
+    public void updateUserIds() {
+        mDatabase.child("userids/").child(user.getUid()).setValue(user.getEmail());
     }
 
     private void signOut() {
@@ -118,6 +133,11 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.sign_out_button:
@@ -125,15 +145,9 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
                 signOut();
                 finish();
                 break;
-            case R.id.add_plan_button:
-                Intent intent = new Intent(this, MapsActivity.class);
-                startActivity(intent);
+            case R.id.new_group_button:
+                startActivity(new Intent(GroupActivity.this, NewGroupDialog.class));
                 break;
         }
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
     }
 }

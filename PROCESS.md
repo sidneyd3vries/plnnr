@@ -18,3 +18,12 @@ API key stopped working so I had to spend 2 hours fixing it. Linked views to mak
 
 # Day 8
 Changed api after finding out manually asking for data was too much work. New query gives more information so I can do more. Started working on sending places to firebase, but the change in query for the api made this stop working so I am now rewriting it. Also started with overflow menu's and a small start with the design of the app.
+
+# Day 9
+Got basic version of database working, groups are not implemented yet but I can send plans to the database and populate listviews with data from the database. 
+
+# Day 10
+Didn't feel very well so I did not work on the app.
+
+# Day 11
+Restructured database and rewritten the code I already had. Had a lot of trouble with the dialog of adding people to a group. Adding edittexts with dynamic id's posed a lot of problems, but I got it working after more time than I wanted.

@@ -168,19 +168,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return coordinates;
     }
 
-    public String getId(JSONObject json) throws JSONException {
-        String id = json.getString("place_id");
-        return id;
-    }
-
-    public String getRating(JSONObject json) throws JSONException {
-        if (json.has("rating")) {
-            Double rating = json.getDouble("rating");
-            return String.valueOf(rating);
-        } else {
-            return "No ratings yet";
-        }
-    }
+//    public String getId(JSONObject json) throws JSONException {
+//        String id = json.getString("place_id");
+//        return id;
+//    }
+//
+//    public String getRating(JSONObject json) throws JSONException {
+//        if (json.has("rating")) {
+//            Double rating = json.getDouble("rating");
+//            return String.valueOf(rating);
+//        } else {
+//            return "No ratings yet";
+//        }
+//    }
 
     public String getName(JSONObject json) throws JSONException {
         String name = json.getString("name");
@@ -367,6 +367,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (Objects.equals(fromitem, toitem)) {
                     Toast.makeText(this, "Same category", Toast.LENGTH_SHORT).show();
                 } else {
+                    mMap.clear();
                     prepareQuery();
                     try {
                         String from = queryJson(fromquery);
