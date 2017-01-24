@@ -27,3 +27,6 @@ Didn't feel very well so I did not work on the app.
 
 # Day 11
 Restructured database and rewritten the code I already had. Had a lot of trouble with the dialog of adding people to a group. Adding edittexts with dynamic id's posed a lot of problems, but I got it working after more time than I wanted.
+
+# Day 12
+Groups are almost working, had some problems today with a leakedWindow error and also had to fix an infinite loop where an user would not be logged in and an activity would keep reloading. Code for the lists per group is almost done and making groups works for the biggest part.
