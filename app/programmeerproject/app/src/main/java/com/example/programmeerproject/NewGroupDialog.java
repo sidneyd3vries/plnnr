@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -42,7 +43,6 @@ public class NewGroupDialog extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.new_group_dialog);
-        //setTitle("Create group");
 
         // Get Firebase instance, database and current user
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -163,7 +163,7 @@ public class NewGroupDialog extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.create_group_button:
-                // Clean this code up
+                //TODO Clean this code up
                 createGroup(getUidFromEmail(getEditTextEmails()), getGroupName());
                 returnHome();
                 break;

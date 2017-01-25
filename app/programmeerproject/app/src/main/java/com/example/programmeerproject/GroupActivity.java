@@ -44,8 +44,7 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.group_activity);
 
-        // Do something with google
-        configSignInBuildClient();
+        buildGoogleApiClient();
 
         // Get current user
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -53,11 +52,9 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         if (user == null) {
-            Log.d("@@@@@", "USER IS NULL");
             Intent intent = new Intent(this, SignInActivity.class);
             startActivity(intent);
         } else {
-            Log.d("@@@", "USER NOT NULL");
             // Find listView
             listView = (ListView) findViewById(R.id.list);
 
@@ -74,22 +71,17 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     }
 
     public void setUpListView(ArrayList<String> values, final ListView view) {
-
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, values);
 
         view.setAdapter(adapter);
-
         view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
             @Override
             public void onItemClick(AdapterView<?> parent, View vw,
                                     int position, long id) {
-
                 Intent intent = new Intent(GroupActivity.this, PinboardActivity.class);
                 intent.putExtra("groupid", mGroupIds.get(position));
                 startActivity(intent);
-
             }
         });
     }
@@ -148,7 +140,6 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
                 }
                 setUpListView(mGroupNames, listView);
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Log.d("GroupActivity", String.valueOf(databaseError));
@@ -156,7 +147,7 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         });
     }
 
-    public void configSignInBuildClient() {
+    public void buildGoogleApiClient() {
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

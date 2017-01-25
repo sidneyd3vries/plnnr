@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">programmeerproject</string>
+    <string name="app_name">Plnnr</string>
     <string name="loading">loading</string>
-    <string name="sign_out">sign out</string>
-    <string name="signed_out">signed out</string>
+    <string name="sign_out">Sign out</string>
+    <string name="signed_out">Signed out</string>
     <string name="groups">Groups</string>
     <string name="plus">+</string>
 </resources>
