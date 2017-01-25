@@ -41,13 +41,14 @@ public class PinboardActivity extends AppCompatActivity implements
     ListView fromListView;
     ListView toListView;
 
-    ArrayList<String> receivedData = new ArrayList<>();
-    ArrayList<String> keyList = new ArrayList<>();
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pinboard_activity);
+
+        // Get id of current group
+        Intent intent = getIntent();
+        String groupId = intent.getStringExtra("groupid");
 
         fromListView = (ListView) findViewById(R.id.fromlist);
         toListView = (ListView) findViewById(R.id.tolist);
@@ -77,7 +78,7 @@ public class PinboardActivity extends AppCompatActivity implements
         view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> parent, View vview,
+            public void onItemClick(AdapterView<?> parent, View vw,
                                     int position, long id) {
 
                 int itemPosition     = position;

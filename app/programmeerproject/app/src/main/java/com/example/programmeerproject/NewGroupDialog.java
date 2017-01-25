@@ -25,16 +25,24 @@ import java.util.Objects;
 
 public class NewGroupDialog extends Activity implements View.OnClickListener {
 
+    //TODO user input validation
+
     int id = 2;
 
     private DatabaseReference mDatabase;
     private FirebaseUser user;
 
+    ArrayList<String> uidList = new ArrayList<>();
+    ArrayList<String> emailList = new ArrayList<>();
+
+    EditText groupName;
+    EditText ownEmail;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.new_group_dialog);
-        setTitle("Add friends");
+        //setTitle("Create group");
 
         // Get Firebase instance, database and current user
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -43,6 +51,14 @@ public class NewGroupDialog extends Activity implements View.OnClickListener {
 
         findViewById(R.id.create_group_button).setOnClickListener(this);
         findViewById(R.id.add_edit_text).setOnClickListener(this);
+
+
+        groupName = (EditText) findViewById(R.id.groupnameedittext);
+        ownEmail = (EditText) findViewById(R.id.et1);
+
+        ownEmail.setText(user.getEmail());
+
+        getUserIds();
     }
 
     public void returnHome() {
@@ -77,45 +93,78 @@ public class NewGroupDialog extends Activity implements View.OnClickListener {
         }
     }
 
-    public ArrayList<String> getEditTextData() {
-        ArrayList<String> names = new ArrayList<>();
+    public ArrayList<String> getEditTextEmails() {
+        ArrayList<String> emails = new ArrayList<>();
 
         EditText staticEditText = (EditText) findViewById(R.id.et1);
-        names.add(getUser(staticEditText));
+        emails.add(getUser(staticEditText));
 
         for (int i = 2; i < id; i++) {
             //noinspection ResourceType
             EditText dynamicEditText = (EditText)findViewById(i);
-            names.add(getUser(dynamicEditText));
+            emails.add(getUser(dynamicEditText));
         }
-        return names;
+        return emails;
     }
 
-    public String joinArrayList(ArrayList<String> arraylist) {
-        return TextUtils.join("", arraylist).replaceAll("[.#$\\[\\]]","");
-    }
-
-    public void updateGroups(ArrayList<String> users){
-        // Write json to database
-        String groupId = joinArrayList(users);
-        Log.d("TEST", groupId);
-        for (int i = 0; i < users.size() ; i++) {
-            mDatabase.child("groups/" + groupId + "/").child(users.get(i).replaceAll("[.#$\\[\\]]","")).setValue(true);
+    public void createGroup(ArrayList<String> uids, String name){
+        String groupId = TextUtils.join("", uids);
+        mDatabase.child("groups/" + groupId + "/name").setValue(name);
+        for (int i = 0; i < uids.size() ; i++) {
+            mDatabase.child("groups/" + groupId + "/").child(uids.get(i)).setValue(true);
         }
     }
 
-    public void updateUsers(ArrayList<String> users) {
-        String groupId = joinArrayList(users);
-        Log.d("TEST", groupId);
-        mDatabase.child("users/" + user.getEmail().replaceAll("[.#$\\[\\]]","") + "/" + groupId);
+    public void getUserIds() {
+
+        // Database reader
+        DatabaseReference userIds = mDatabase.child("userids");
+        userIds.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                for (DataSnapshot child : dataSnapshot.getChildren()) {
+                    emailList.add(String.valueOf(child.getValue()));
+                    uidList.add(child.getKey());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("NewGroupDialog", String.valueOf(databaseError));
+            }
+        });
+    }
+
+    public ArrayList<String> getUidFromEmail(ArrayList<String> emails) {
+        // Returns list of uid's from entered emails
+        ArrayList<String> uids = new ArrayList<>();
+
+        for (String s: emails) {
+            if (emailList.contains(s)){
+                int index = emailList.indexOf(s);
+                uids.add(uidList.get(index));
+            } else {
+                Toast.makeText(this, "Invalid email: " + s, Toast.LENGTH_SHORT).show();
+            }
+        }
+        return uids;
+    }
+
+    public String getGroupName() {
+        if (!Objects.equals(groupName.getText().toString(), "")) {
+            return groupName.getText().toString();
+        } else {
+            return "Default name";
+        }
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.create_group_button:
-                updateGroups(getEditTextData());
-                updateUsers(getEditTextData());
+                // Clean this code up
+                createGroup(getUidFromEmail(getEditTextEmails()), getGroupName());
                 returnHome();
                 break;
             case R.id.add_edit_text:

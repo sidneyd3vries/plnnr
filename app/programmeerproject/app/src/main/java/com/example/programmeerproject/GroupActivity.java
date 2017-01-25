@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -18,8 +19,14 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Objects;
 
 public class GroupActivity extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
 
@@ -29,62 +36,71 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     private DatabaseReference mDatabase;
     private FirebaseUser user;
 
+    ArrayList<String> mGroupNames = new ArrayList<>();
+    ArrayList<String> mGroupIds = new ArrayList<>();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.group_activity);
+
+        // Do something with google
+        configSignInBuildClient();
 
         // Get current user
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        listView = (ListView) findViewById(R.id.list);
-
-        // Set button listeners
-        findViewById(R.id.sign_out_button).setOnClickListener(this);
-        findViewById(R.id.new_group_button).setOnClickListener(this);
-
-        // Sign-in is sometimes slower than activity switch
-        // So it keeps looping untill the sign-in is processed
         if (user == null) {
-            Intent intent = getIntent();
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            finish();
+            Log.d("@@@@@", "USER IS NULL");
+            Intent intent = new Intent(this, SignInActivity.class);
             startActivity(intent);
+        } else {
+            Log.d("@@@", "USER NOT NULL");
+            // Find listView
+            listView = (ListView) findViewById(R.id.list);
+
+            // Set button listeners
+            findViewById(R.id.sign_out_button).setOnClickListener(this);
+            findViewById(R.id.new_group_button).setOnClickListener(this);
+
+            // Update Uid's for use in groups
+            updateUserIds();
+
+            // Get groups of logged in user and fill listView
+            getUserGroups();
         }
+    }
 
-        // Update Uid's for use in groups
-        updateUserIds();
+    public void setUpListView(ArrayList<String> values, final ListView view) {
 
-        configSignInBuildClient();
-
-        // TODO Static data, to be replaced
-        // TODO Data is gotten from user tab
-        String[] values = new String[] { "Group 1" };
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, values);
 
-        listView.setAdapter(adapter);
+        view.setAdapter(adapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> parent, View view,
+            public void onItemClick(AdapterView<?> parent, View vw,
                                     int position, long id) {
 
-                // Static intent, to be replaced
                 Intent intent = new Intent(GroupActivity.this, PinboardActivity.class);
+                intent.putExtra("groupid", mGroupIds.get(position));
                 startActivity(intent);
 
             }
-
         });
     }
 
     public void updateUserIds() {
-        mDatabase.child("userids/").child(user.getUid()).setValue(user.getEmail());
+        if (user != null) {
+            mDatabase.child("userids/").child(user.getUid()).setValue(user.getEmail());
+        } else {
+            Intent intent = new Intent(this, SignInActivity.class);
+            startActivity(intent);
+        }
     }
 
     private void signOut() {
@@ -116,6 +132,30 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    public void getUserGroups() {
+        // Database reader
+        DatabaseReference groups = mDatabase.child("groups");
+        groups.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot group : dataSnapshot.getChildren()) {
+                    for (DataSnapshot userid: group.getChildren() ) {
+                        if (Objects.equals(user.getUid(), userid.getKey())) {
+                            mGroupIds.add(group.getKey());
+                            mGroupNames.add(group.child("name").getValue().toString());
+                        }
+                    }
+                }
+                setUpListView(mGroupNames, listView);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("GroupActivity", String.valueOf(databaseError));
+            }
+        });
+    }
+
     public void configSignInBuildClient() {
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
@@ -130,6 +170,7 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
                 .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
+
     }
 
     @Override
