@@ -12,7 +12,7 @@ import java.util.Map;
 public class GroupListAdapter extends BaseAdapter {
     private final ArrayList mData;
 
-    public GroupListAdapter(Map<String, Integer> map) {
+    public GroupListAdapter(Map<String, ArrayList<String>> map) {
         mData = new ArrayList();
         mData.addAll(map.entrySet());
     }
@@ -23,7 +23,7 @@ public class GroupListAdapter extends BaseAdapter {
     }
 
     @Override
-    public Map.Entry<String, Integer> getItem(int position) {
+    public Map.Entry<String, ArrayList<String>> getItem(int position) {
         return (Map.Entry) mData.get(position);
     }
 
@@ -37,18 +37,18 @@ public class GroupListAdapter extends BaseAdapter {
         final View result;
 
         if (view == null) {
-            result = LayoutInflater.from(parent.getContext()).inflate(R.layout.pinboard_adapter_item, parent, false);
+            result = LayoutInflater.from(parent.getContext()).inflate(R.layout.group_adapter_item, parent, false);
         } else {
             result = view;
         }
 
-        Map.Entry<String, Integer> item = getItem(position);
+        Map.Entry<String, ArrayList<String>> item = getItem(position);
 
-        TextView place = (TextView) result.findViewById(R.id.place);
-        TextView count = (TextView) result.findViewById(R.id.count);
+        TextView groupname = (TextView) result.findViewById(R.id.groupname);
+        TextView members = (TextView) result.findViewById(R.id.members);
 
-        place.setText(item.getKey());
-        count.setText(String.valueOf(item.getValue()));
+        groupname.setText(item.getKey());
+        members.setText(String.valueOf(item.getValue()).replaceAll("[\\[\\]]", ""));
 
         return result;
     }

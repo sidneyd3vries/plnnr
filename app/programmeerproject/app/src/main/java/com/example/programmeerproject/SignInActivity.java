@@ -17,6 +17,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -196,6 +197,7 @@ public class SignInActivity extends AppCompatActivity implements
         if (signedIn) {
             Intent intent = new Intent(this, GroupActivity.class);
             startActivity(intent);
+            finish();
         } else {
             Log.d(TAG, "Not signed in");
         }

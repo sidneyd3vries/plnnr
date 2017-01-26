@@ -24,18 +24,21 @@
         </activity>
         <activity
             android:name=".PinboardActivity"
-            android:theme="@style/Titlebar"
-            android:label="Pinboard"></activity>
+            android:label=""
+            android:theme="@style/Titlebar" />
         <activity
             android:name=".MapsActivity"
-            android:theme="@style/NoTitleBar"></activity>
+            android:theme="@style/NoTitleBar" />
         <activity
             android:name=".GroupActivity"
-            android:theme="@style/Titlebar"
-            android:label="My groups"></activity>
+            android:label="My groups"
+            android:theme="@style/Titlebar" />
         <activity
             android:name=".NewGroupDialog"
-            android:theme="@style/myDialog"></activity>
+            android:theme="@style/myDialog" />
+        <activity
+            android:name=".PinboardItemDialog"
+            android:theme="@style/myDialog" />
     </application>
 
 </manifest>

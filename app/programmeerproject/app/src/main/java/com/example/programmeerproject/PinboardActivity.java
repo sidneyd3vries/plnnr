@@ -1,10 +1,15 @@
 package com.example.programmeerproject;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -28,8 +33,7 @@ import java.util.Objects;
 
 
 public class PinboardActivity extends AppCompatActivity implements
-        GoogleApiClient.OnConnectionFailedListener,
-        View.OnClickListener  {
+        GoogleApiClient.OnConnectionFailedListener {
 
     private DatabaseReference mDatabase;
     private FirebaseUser user;
@@ -46,15 +50,27 @@ public class PinboardActivity extends AppCompatActivity implements
     ArrayList<String> toValues = new ArrayList<>();
 
     String groupId;
+    String groupName;
+    String dir;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pinboard_activity);
+        Log.d("$$$$$$$$$$$$$ pin", "ONCREATE");
+
+        setUpFab();
 
         // Get id of current group
         Intent intent = getIntent();
         groupId = intent.getStringExtra("groupid");
+        groupName = intent.getStringExtra("groupname");
+        dir = intent.getStringExtra("dir");
+
+        Log.d("%%%%%%%%", String.valueOf(groupId));
+
+
+        setTitle(groupName);
 
         fromListView = (ListView) findViewById(R.id.fromlist);
         toListView = (ListView) findViewById(R.id.tolist);
@@ -64,13 +80,11 @@ public class PinboardActivity extends AppCompatActivity implements
         user = mAuth.getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        findViewById(R.id.add_plan_button).setOnClickListener(this);
-
         buildGoogleApiClient();
 
-        setDatabaseListenerForListView("from", fromListView);
+        setDatabaseListenerForListView("from", fromListView, groupId);
 
-        setDatabaseListenerForListView("to", toListView);
+        setDatabaseListenerForListView("to", toListView, groupId);
     }
 
     @Override
@@ -78,9 +92,11 @@ public class PinboardActivity extends AppCompatActivity implements
         super.onResume();
         // Get id of current group
         Intent intent = getIntent();
-        String groupId = intent.getStringExtra("groupid");
+        groupId = intent.getStringExtra("groupid");
+        groupName = intent.getStringExtra("groupname");
+        dir = intent.getStringExtra("dir");
+        setTitle(groupName);
         Log.d("ONRESUME", groupId);
-
     }
 
     @Override
@@ -117,6 +133,38 @@ public class PinboardActivity extends AppCompatActivity implements
 //        });
 //    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.pinboard_overflow_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.leavegroup:
+                leaveGroup();
+                return true;
+            case R.id.help:
+                getHelp();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void setUpFab() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.addplanfab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+                intent.putExtra("groupid", groupId);
+                intent.putExtra("groupname", groupName);
+                startActivity(intent);
+            }
+        });
+    }
+
     public void populateList(final HashMap<String, Integer> hashmap, final ListView lv) {
         PinboardListAdapter adapter = new PinboardListAdapter(hashmap);
         lv.setAdapter(adapter);
@@ -127,12 +175,52 @@ public class PinboardActivity extends AppCompatActivity implements
             public void onItemClick(AdapterView<?> parent, View vw, int position, long id) {
                 int viewId = lv.getId();
                 String dir = getResources().getResourceEntryName(viewId).replaceAll("list", "");
-
-                String itemKey = (new ArrayList<String>(hashmap.keySet())).get(position);
+                String itemKey = (new ArrayList<>(hashmap.keySet())).get(position);
 
                 updateVotes(dir, itemKey);
             }
         });
+
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                int viewId = lv.getId();
+                String dir = getResources().getResourceEntryName(viewId).replaceAll("list", "");
+                String itemKey = (new ArrayList<>(hashmap.keySet())).get(position);
+
+                Intent intent = new Intent(getApplicationContext(), PinboardItemDialog.class);
+                intent.putExtra("dir", dir);
+                intent.putExtra("name", itemKey);
+                intent.putExtra("groupid", groupId);
+                intent.putExtra("groupname", groupName);
+                startActivity(intent);
+
+                return false;
+            }
+        });
+    }
+
+    public void leaveGroup() {
+        Snackbar.make(findViewById(android.R.id.content), "Are you sure you want to leave the group?", Snackbar.LENGTH_INDEFINITE)
+                .setAction("Yes!", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        DatabaseReference groupToLeave = mDatabase.child("groups").child(groupId).child(user.getUid());
+                        //TODO check if user is last member of group
+                        groupToLeave.setValue(null);
+                        Intent intent = new Intent(getApplicationContext(), GroupActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                })
+                .setActionTextColor(Color.WHITE)
+                .show();
+    }
+
+    public void getHelp() {
+        Snackbar.make(findViewById(android.R.id.content),
+                "Click an item to vote. Long click an item to delete it or find it on the map.",
+                Snackbar.LENGTH_LONG).show();
     }
 
     public void updateVotes(String dir, String place) {
@@ -164,10 +252,10 @@ public class PinboardActivity extends AppCompatActivity implements
         });
     }
 
-    public void setDatabaseListenerForListView(String dir, final ListView lv) {
+    public void setDatabaseListenerForListView(String dir, final ListView lv, String groupId) {
         //final ArrayList<String> keys = new ArrayList<>();
         final HashMap<String, Integer> count = new HashMap<>();
-
+        Log.d("GODVEDOMME", String.valueOf(groupId) + " " + String.valueOf(dir));
         DatabaseReference dbRef = mDatabase.child("data").child(groupId).child(dir);
         dbRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -218,14 +306,4 @@ public class PinboardActivity extends AppCompatActivity implements
         Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.add_plan_button:
-                Intent intent = new Intent(this, MapsActivity.class);
-                intent.putExtra("groupid", groupId);
-                startActivity(intent);
-                break;
-        }
-    }
 }

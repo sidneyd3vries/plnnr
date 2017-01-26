@@ -20,8 +20,9 @@
 
     <style name="NoTitleBar.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="myDialog" parent="@android:style/Theme.DeviceDefault.Light.Dialog">
+    <style name="myDialog" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:windowNoTitle">true</item>
     </style>
+
 
 </resources>

@@ -61,6 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     String fromquery;
     String toquery;
     String groupId;
+    String groupName;
     String[]types = {"amusement_park", "aquarium",
             "art_gallery", "bar", "book_store",
             "bowling_alley", "cafe", "campground",
@@ -103,6 +104,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Remember groupId from previous activity
         Intent intent = getIntent();
         groupId = intent.getStringExtra("groupid");
+        groupName = intent.getStringExtra("groupname");
 
         setUpGoogleApiClient();
         setDatabaseListener();
