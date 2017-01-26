@@ -30,3 +30,9 @@ Restructured database and rewritten the code I already had. Had a lot of trouble
 
 # Day 12
 Groups are almost working, had some problems today with a leakedWindow error and also had to fix an infinite loop where an user would not be logged in and an activity would keep reloading. Code for the lists per group is almost done and making groups works for the biggest part.
+
+# Day 13
+Groups are working 95%. You can not leave a group yet but that is something that is done quickly. Also you can not see the other users in your group, and im planning on fixing that tommorrow.
+
+# Day 14
+Finally got working that you can see who are in your group, this took way more work then i expected it to. This had mainly to do with the way I structured my database. But I got it working. I also got working that you can delete items from the lists, you can leave groups and I did some small ui tweaks such as overflow menu's and floating action buttons. THe biggest thing to do now is more input validation and some extra's such as another search option on the map activity, and the possibility to find a list item on the map immediately.
