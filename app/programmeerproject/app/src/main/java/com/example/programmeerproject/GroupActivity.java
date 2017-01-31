@@ -1,9 +1,13 @@
 package com.example.programmeerproject;
 
+import android.*;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -11,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
@@ -19,6 +24,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Places;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -32,11 +39,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
-public class GroupActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class GroupActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
     //TODO prevent backnavigation here
 
     ListView listView;
+    TextView emptyList;
 
     private GoogleApiClient mGoogleApiClient;
     private DatabaseReference mDatabase;
@@ -48,12 +56,16 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
     LinkedHashMap<String, ArrayList<String>> groupMembers = new LinkedHashMap<>();
     LinkedHashMap<String, String> userMap = new LinkedHashMap<>();
 
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.group_activity);
 
-        buildGoogleApiClient();
+        setUpGoogleApiClient();
+
+        checkLocationPermission();
 
         setUpFab();
 
@@ -68,6 +80,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         } else {
             // Find listView
             listView = (ListView) findViewById(R.id.list);
+            emptyList = (TextView) findViewById(R.id.emptylist);
 
             // Update Uid's for use in groups
             updateUserIds();
@@ -75,7 +88,6 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
             // Get useruidmap which gets the groups of current users
             // and then populates the listview
             getUserUidMap();
-
         }
     }
 
@@ -87,7 +99,6 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        //TODO join existing group?
         switch (item.getItemId()) {
             case R.id.signout:
                 Toast.makeText(getApplicationContext(), getString(R.string.signed_out), Toast.LENGTH_SHORT).show();
@@ -111,12 +122,18 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
     public void setUpListView(final LinkedHashMap<String, ArrayList<String>> values, final ListView view) {
         GroupListAdapter adapter = new GroupListAdapter(values);
 
+        if (values.size() == 0) {
+            emptyList.setVisibility(View.VISIBLE);
+        } else {
+            emptyList.setVisibility(View.GONE);
+        }
+
         view.setAdapter(adapter);
         view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View vw,
                                     int position, long id) {
-                Intent intent = new Intent(GroupActivity.this, PinboardActivity.class);
+                Intent intent = new Intent(GroupActivity.this, PinboardTabActivity.class);
                 intent.putExtra("groupid", mGroupIds.get(position));
                 intent.putExtra("groupname", mGroupNames.get(position));
                 startActivity(intent);
@@ -206,7 +223,6 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                         }
                     }
 
-                    //Log.d("USERLIST EMAILS", String.valueOf(userlist));
                     // If user is in a group update groupMembers map used for listview
                     if (userlist.contains(user.getEmail())) {
                         mGroupIds.add(group.getKey());
@@ -214,7 +230,6 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                         groupMembers.put(group.child("name").getValue().toString(), userlist);
                     }
                 }
-                Log.d("HASHMAP", String.valueOf(groupMembers));
                 // Set up the listview with the map <group name, arraylist of emails of members>
                 setUpListView(groupMembers, listView);
             }
@@ -245,5 +260,78 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            default:
+                break;
+        }
+    }
+
+    public void setUpGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .addApi(LocationServices.API)
+                .enableAutoManage(this, this)
+                .build();
+    }
+
+    public boolean checkLocationPermission(){
+        if (ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Asking user if explanation is needed
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                // Show an expanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+                //Prompt the user once explanation has been shown
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_LOCATION);
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_LOCATION);
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // Permission was granted.
+                    if (ContextCompat.checkSelfPermission(this,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+
+                        if (mGoogleApiClient == null) {
+                            setUpGoogleApiClient();
+                        }
+                    }
+                } else {
+                    // Permission denied, Disable the functionality that depends on this permission.
+                    Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+        }
     }
 }

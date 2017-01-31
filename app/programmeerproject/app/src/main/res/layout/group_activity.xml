@@ -5,6 +5,15 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/emptylist"
+        android:gravity="center"
+        android:text="No groups yet"
+        android:textSize="18sp"
+        android:visibility="invisible"/>
+
     <ListView
         android:id="@+id/list"
         android:layout_height="wrap_content"
@@ -20,7 +29,5 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_done"
         android:id="@+id/addgroupfab"/>
-
-
 
 </RelativeLayout>

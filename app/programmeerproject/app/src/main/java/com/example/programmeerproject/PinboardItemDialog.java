@@ -43,15 +43,12 @@ public class PinboardItemDialog extends Activity implements View.OnClickListener
         groupId = intent.getStringExtra("groupid");
         groupName = intent.getStringExtra("groupname");
 
-        title = (TextView) findViewById(R.id.title);
-        title.setText(name);
-
         findViewById(R.id.deleteitem).setOnClickListener(this);
         findViewById(R.id.findonmap).setOnClickListener(this);
     }
 
     public void returnHome() {
-        Intent home_intent = new Intent(getApplicationContext(), PinboardActivity.class)
+        Intent home_intent = new Intent(getApplicationContext(), PinboardTabActivity.class)
                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         home_intent.putExtra("dir", dir);
         home_intent.putExtra("name", name);
@@ -61,7 +58,7 @@ public class PinboardItemDialog extends Activity implements View.OnClickListener
     }
 
     public void deleteFromDb(final String name, final String dir) {
-        Snackbar.make(findViewById(android.R.id.content), "Are you sure you want to delete this item?", Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(findViewById(android.R.id.content), "Are you sure you want to delete this item?", Snackbar.LENGTH_LONG)
                 .setAction("Yes!", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -76,8 +73,10 @@ public class PinboardItemDialog extends Activity implements View.OnClickListener
     }
 
     public void findOnMap(String name) {
-        //new map activity
-        Toast.makeText(this, "TODO", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, FindOnMapActivity.class);
+        intent.putExtra("name", name);
+        startActivity(intent);
+        finish();
     }
 
     @Override

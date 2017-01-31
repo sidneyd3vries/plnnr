@@ -3,6 +3,7 @@
     package="com.example.programmeerproject">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
     <application
@@ -15,7 +16,8 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDnVzF4i5BZl1RQbpX-kx5Sds7T3TSFqlU" />
 
-        <activity android:name=".SignInActivity">
+        <activity android:name=".SignInActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -23,21 +25,37 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".PinboardActivity"
-            android:label=""
-            android:theme="@style/Titlebar" />
-        <activity
             android:name=".MapsActivity"
-            android:theme="@style/NoTitleBar" />
+            android:theme="@style/Titlebar"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".FindOnMapActivity"
+            android:theme="@style/Titlebar"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".GroupActivity"
             android:label="My groups"
-            android:theme="@style/Titlebar" />
+            android:theme="@style/Titlebar"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".FragmentTest"
+            android:theme="@style/NoTitleBar"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".PinboardTabActivity"
+            android:theme="@style/NoTitleBar"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".NewGroupDialog"
             android:theme="@style/myDialog" />
         <activity
             android:name=".PinboardItemDialog"
+            android:theme="@style/myDialog" />
+        <activity
+            android:name=".AddUserDialog"
+            android:theme="@style/myDialog" />
+        <activity
+            android:name=".ChangeNameDialog"
             android:theme="@style/myDialog" />
     </application>
 

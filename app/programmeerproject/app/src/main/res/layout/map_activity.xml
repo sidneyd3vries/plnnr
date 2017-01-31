@@ -2,7 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
+    android:id="@+id/mapscontainer"
     android:background="@color/background">
 
     <RelativeLayout
@@ -10,71 +12,161 @@
         android:layout_height="90dp"
         android:id="@+id/toplayout">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Or:"
+            android:textSize="16sp"
+            android:gravity="center"/>
+
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:orientation="horizontal"
-            android:id="@+id/inputlayout"
-            android:baselineAligned="false">
+            android:id="@+id/fromrow"
+            android:background="@color/violet">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <TextView
+                android:layout_width="55dp"
+                android:layout_height="40dp"
+                android:text="From:"
+                android:textSize="16sp"/>
+
+            <Spinner
+                android:layout_width="150dp"
+                android:layout_height="40dp"
+                android:id="@+id/fromspinner"/>
+
+            <EditText
+                android:layout_width="120dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:id="@+id/text"
-                android:paddingStart="15dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="2dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:text="From:"
-                    android:textSize="16sp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:text="To:"
-                    android:textSize="16sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:id="@+id/selectionspinner"
-                android:paddingEnd="20dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:layout_weight="1">
-                <Spinner
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:id="@+id/fromspinner"
-                    android:background="@color/violet"/>
-                <Spinner
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:id="@+id/tospinner"
-                    android:background="@color/green"/>
-            </LinearLayout>
+                android:id="@+id/fromedittext"
+                android:hint="From"/>
 
         </LinearLayout>
 
-        <Button
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:orientation="horizontal"
+            android:layout_below="@id/fromrow"
+            android:id="@+id/torow"
+            android:background="@color/green">
+
+            <TextView
+                android:layout_width="55dp"
+                android:layout_height="40dp"
+                android:text="To:"
+                android:textSize="16sp"/>
+            <Spinner
+                android:layout_width="150dp"
+                android:layout_height="40dp"
+                android:id="@+id/tospinner"/>
+
+            <EditText
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/toedittext"
+                android:hint="To"/>
+
+        </LinearLayout>
+
+        <!--<LinearLayout-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:orientation="horizontal"-->
+            <!--android:id="@+id/inputlayout"-->
+            <!--android:baselineAligned="false">-->
+
+            <!--<LinearLayout-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:orientation="vertical"-->
+                <!--android:id="@+id/text"-->
+                <!--android:paddingStart="8dp"-->
+                <!--android:paddingEnd="3dp"-->
+                <!--android:paddingTop="10dp"-->
+                <!--android:paddingBottom="2dp">-->
+
+                <!--<TextView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="40dp"-->
+                    <!--android:text="From:"-->
+                    <!--android:textSize="16sp"/>-->
+
+                <!--<TextView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="40dp"-->
+                    <!--android:text="To:"-->
+                    <!--android:textSize="16sp"/>-->
+            <!--</LinearLayout>-->
+
+            <!--<LinearLayout-->
+                <!--android:layout_width="120dp"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:orientation="vertical"-->
+                <!--android:id="@+id/selectionspinner"-->
+                <!--android:paddingEnd="10dp"-->
+                <!--android:paddingStart="3dp"-->
+                <!--android:paddingTop="2dp"-->
+                <!--android:paddingBottom="2dp"-->
+                <!--android:layout_weight="1">-->
+                <!--<Spinner-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="40dp"-->
+                    <!--android:id="@+id/fromspinner"-->
+                    <!--android:background="@color/violet"/>-->
+                <!--<Spinner-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="40dp"-->
+                    <!--android:id="@+id/tospinner"-->
+                    <!--android:background="@color/green"/>-->
+            <!--</LinearLayout>-->
+
+
+
+            <!--<LinearLayout-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:orientation="vertical"-->
+                <!--android:paddingLeft="2dp"-->
+                <!--android:paddingRight="2dp"-->
+                <!--android:id="@+id/textSearch">-->
+
+                    <!--<EditText-->
+                        <!--android:layout_width="120dp"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:id="@+id/fromedittext"-->
+                        <!--android:hint="From"/>-->
+
+                    <!--<EditText-->
+                        <!--android:layout_width="120dp"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:id="@+id/toedittext"-->
+                        <!--android:hint="To"/>-->
+                <!---->
+            <!--</LinearLayout>-->
+
+        <!--</LinearLayout>-->
+
+        <android.support.design.widget.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Go"
-            android:id="@+id/gobutton"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"/>
+            android:layout_marginTop="19dp"
+            android:layout_marginBottom="19dp"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/ic_search"
+            android:id="@+id/mapSearch"/>
 
     </RelativeLayout>
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        xmlns:map="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/map"

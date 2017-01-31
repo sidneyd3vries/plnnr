@@ -49,15 +49,6 @@
 
     </LinearLayout>
 
-    <!--<Button-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="@string/plus"-->
-        <!--android:textSize="30sp"-->
-        <!--android:id="@+id/add_plan_button"-->
-        <!--android:layout_alignParentBottom="true"-->
-        <!--android:layout_alignParentEnd="true"/>-->
-
     <android.support.design.widget.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

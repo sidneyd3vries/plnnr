@@ -1,19 +1,32 @@
 package com.example.programmeerproject;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -40,11 +53,13 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMapClickListener,
         AdapterView.OnItemSelectedListener,
         View.OnClickListener,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener,
+        GoogleApiClient.ConnectionCallbacks,
+        LocationListener {
 
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
@@ -52,8 +67,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private DatabaseReference mDatabase;
     private FirebaseUser user;
 
-    public Double lng, lat;
-    int rad;
+    public Double lng;
+    public Double lat;
+    static int RAD = 10000;
 
     String apikey;
     String fromitem;
@@ -62,7 +78,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     String toquery;
     String groupId;
     String groupName;
-    String[]types = {"amusement_park", "aquarium",
+
+    String[] types = {"amusement_park", "aquarium",
             "art_gallery", "bar", "book_store",
             "bowling_alley", "cafe", "campground",
             "casino", "department_store", "movie_theater",
@@ -72,23 +89,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Spinner fromspinner;
     Spinner tospinner;
 
+    EditText fromedittext;
+    EditText toedittext;
+
+    String fromtext;
+    String totext;
+
     ArrayAdapter<String> fromadapter;
     ArrayAdapter<String> toadapter;
 
     ArrayList<String> receivedData = new ArrayList<>();
     ArrayList<String> keyList = new ArrayList<>();
 
+    LocationRequest mLocationRequest;
+    Location mLastLocation;
+
+    Marker mCurrLocationMarker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
 
+        setUpFab();
+
+        setTitle("Find places");
+
         // Get api key
         apikey = getString(R.string.google_api_key);
 
-        // Set button listeners
-        findViewById(R.id.gobutton).setOnClickListener(this);
+        // Set button listener
         findViewById(R.id.addbutton).setOnClickListener(this);
+
+        fromedittext = (EditText) findViewById(R.id.fromedittext);
+        toedittext = (EditText) findViewById(R.id.toedittext);
 
         // Find and set up spinners
         fromspinner = (Spinner) findViewById(R.id.fromspinner);
@@ -106,29 +140,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         groupId = intent.getStringExtra("groupid");
         groupName = intent.getStringExtra("groupname");
 
-        setUpGoogleApiClient();
         setDatabaseListener();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        // TODO current location, not hardcoded
-        lng = 4.895168;
-        lat = 52.370216;
-        rad = 1000;
     }
 
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
+        if (mGoogleApiClient != null)
+            mGoogleApiClient.connect();
     }
 
     @Override
-    protected void onStop() {
+    public void onStop() {
         super.onStop();
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.stopAutoManage(this);
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mGoogleApiClient.stopAutoManage(this);
+        mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mGoogleApiClient.stopAutoManage(this);
         mGoogleApiClient.disconnect();
     }
 
@@ -137,9 +183,68 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
+                .addApi(LocationServices.API)
                 .enableAutoManage(this, this)
                 .build();
     }
+
+    public void setUpFab() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.mapSearch);
+        fab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mMap.clear();
+                fromtext = fromedittext.getText().toString();
+                totext = toedittext.getText().toString();
+
+                if (lat == null || lng == null) {
+                    Toast.makeText(getApplicationContext(), "Need location", Toast.LENGTH_SHORT).show();
+                } else {
+                    if (Objects.equals(fromitem, toitem) && Objects.equals(fromtext, "") && Objects.equals(totext, "")) {
+                        Toast.makeText(getApplicationContext(), "Same category", Toast.LENGTH_SHORT).show();
+                    } else {
+                        mMap.clear();
+                        if (Objects.equals(fromtext, "") && Objects.equals(totext, "")) {
+                            prepareQuery(false, false);
+                        } else if (Objects.equals(fromtext, "") && !Objects.equals(totext, "")) {
+                            prepareQuery(false, true);
+                        } else if (!Objects.equals(fromtext, "") && Objects.equals(totext, "")) {
+                            prepareQuery(true, false);
+                        } else {
+                            prepareQuery(true, true);
+                        }
+                        try {
+                            String from = queryJson(fromquery);
+                            String to = queryJson(toquery);
+
+                            JSONArray fromArray = getResults(from);
+                            JSONArray toArray = getResults(to);
+
+                            addMarkers(fromArray, 270, "from");
+                            addMarkers(toArray, 120, "to");
+                        } catch (ExecutionException | InterruptedException | JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) { }
 
     public void initSpinner(Spinner spinner, String[] stringArray, ArrayAdapter<String> aAdapter) {
         aAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stringArray);
@@ -148,17 +253,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         spinner.setOnItemSelectedListener(this);
     }
 
-    public void prepareQuery() {
-        // TODO use pagetoken to get more than 20 results
-        fromquery = "https://maps.googleapis.com/maps/api/place/textsearch/json?location=" +
-                lat + "," + lng + "&radius=" + rad +
-                "&type=" + fromitem +
+    public String prepareTextQuery(String name) {
+        String formattedName = name.replaceAll("[^a-zA-Z0-9 ]", "").replaceAll(" ","+");
+        return "https://maps.googleapis.com/maps/api/place/textsearch/json?query=" +
+                formattedName +
+                "&location=" + lat + "," + lng +
                 "&key=" + apikey;
+    }
 
-        toquery = "https://maps.googleapis.com/maps/api/place/textsearch/json?location=" +
-                lat + "," + lng + "&radius=" + rad +
-                "&type=" + toitem +
-                "&key=" + apikey;
+    public void prepareQuery(boolean fromtext, boolean totext) {
+        // TODO use pagetoken to get more than 20 results
+        if (fromtext) {
+            fromquery = prepareTextQuery(fromedittext.getText().toString());
+        } else {
+            fromquery = "https://maps.googleapis.com/maps/api/place/textsearch/json?location=" +
+                    lat + "," + lng + "&radius=" + RAD +
+                    "&type=" + fromitem +
+                    "&key=" + apikey;
+        }
+
+        if (totext) {
+            toquery = prepareTextQuery(toedittext.getText().toString());
+        } else {
+            toquery = "https://maps.googleapis.com/maps/api/place/textsearch/json?location=" +
+                    lat + "," + lng + "&radius=" + RAD +
+                    "&type=" + toitem +
+                    "&key=" + apikey;
+        }
     }
 
     public String queryJson(String url) throws ExecutionException, InterruptedException {
@@ -166,11 +287,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String result;
 
         result = asyncTask.execute(url).get();
-
-        //Log.d("QUERYJSON", result);
-
         return result;
-
     }
 
     public JSONArray getResults(String json) throws JSONException {
@@ -178,13 +295,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (!Objects.equals(input.getString("status"), "OK")) {
             Toast.makeText(this, "No item found in category", Toast.LENGTH_SHORT).show();
+            return new JSONArray();
+        } else {
+            return input.getJSONArray("results");
         }
-
-        return input.getJSONArray("results");
-
-//        JSONArray results = input.getJSONArray("results");
-//
-//        return results;
     }
 
     public LatLng getCoordinates(JSONObject json) throws  JSONException {
@@ -224,10 +338,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return input.replaceAll("[.#$\\[\\]]", "");
     }
 
-    public void writeToGroupDb(String place, String dir, String groupId){
-        //TODO check if item already in db
-        mDatabase.child("data").child(groupId).child(dir).child(stripInput(place)).child("place").setValue("holder");
-        Toast.makeText(this, "Added!", Toast.LENGTH_SHORT).show();
+    public void writeToGroupDb(final String place, final String dir, final String groupId){
+        DatabaseReference toWrite = mDatabase.child("data").child(groupId).child(dir);
+        toWrite.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (!snapshot.hasChild(stripInput(place))) {
+                    mDatabase.child("data").child(groupId).child(dir).child(stripInput(place)).child("place").setValue("holder");
+                    Toast.makeText(getApplicationContext(), "Added", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Item already exists", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(MapsActivity.this, "Database error", Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     public void setDatabaseListener() {
@@ -281,9 +409,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapClick(LatLng point) {
+        boolean ownmarker = true;
         mMap.clear();
         mMap.addMarker(new MarkerOptions().position(point)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
+                .setTag(ownmarker);
 
         lat = point.latitude;
         lng = point.longitude;
@@ -295,23 +425,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        setUpGoogleApiClient();
+
+        //Initialize Google Play Services
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                mMap.setMyLocationEnabled(true);
+            }
+        }
+        else {
+            mMap.setMyLocationEnabled(true);
+        }
+
         // Set up listener
         mMap.setOnMapClickListener(this);
 
-        // Add a marker in Amsterdam and move the camera
-        //TODO get location
-        LatLng amsterdam = new LatLng(52.370216, 4.895168);
-        mMap.addMarker(new MarkerOptions().position(amsterdam).title("Marker in Amsterdam"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(amsterdam, 14));
+        if (lat != null || lng != null) {
+            LatLng latLng = new LatLng(lat, lng);
+            mMap.addMarker(new MarkerOptions().position(latLng));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
+        } else {
+            LatLng amsterdam = new LatLng(52.370216, 4.895168);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(amsterdam, 7));
+        }
 
         // Marker click listener
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                try {
-                    showDetails(marker);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                Log.d("MARKER", String.valueOf(marker.getTag()));
+                if (Objects.equals(marker.getTag(), true)) {
+                    Toast.makeText(MapsActivity.this, "Own marker", Toast.LENGTH_SHORT).show();
+                } else {
+                    try {
+                        showDetails(marker);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
                 return true;
             }
@@ -343,64 +495,71 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.gobutton:
-                if (Objects.equals(fromitem, toitem)) {
-                    Toast.makeText(this, "Same category", Toast.LENGTH_SHORT).show();
-                } else {
-                    mMap.clear();
-                    prepareQuery();
-                    try {
-                        //TODO make this a method
-                        String from = queryJson(fromquery);
-                        String to = queryJson(toquery);
-
-                        JSONArray fromArray = getResults(from);
-                        JSONArray toArray = getResults(to);
-
-                        addMarkers(fromArray, 270, "from");
-                        addMarkers(toArray, 120, "to");
-                    } catch (ExecutionException | InterruptedException | JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-                break;
             case R.id.addbutton:
-                //TODO can still add same item
                 TextView namev = (TextView) findViewById(R.id.name);
                 TextView dirv = (TextView) findViewById(R.id.direction);
                 writeToGroupDb((String) namev.getText(), (String) dirv.getText(), groupId);
+                break;
+            default:
+                break;
         }
     }
 
-    //    public void writeToDB(String place, int count, String dir){
-//        setDatabaseListener();
-//        // Write json to database
-//        if (!keyList.contains(place)) {
-//            mDatabase.child("users/" + user.getUid() + "/" + dir).child(place).setValue(count);
-//            Toast.makeText(getApplicationContext(), "Added!", Toast.LENGTH_SHORT).show();
-//        } else {
-//            //If item already in database
-//            Toast.makeText(getApplicationContext(), "Item already exists", Toast.LENGTH_SHORT).show();
-//        }
-//    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.maps_menu, menu);
+        return true;
+    }
 
-    //    public void showTitle(String id) {
-//        /* maybe redundant because of textsearch instead of radarsearch*/
-//                Places.GeoDataApi.getPlaceById(mGoogleApiClient, id)
-//                .setResultCallback(new ResultCallback<PlaceBuffer>() {
-//                    @Override
-//                    public void onResult(PlaceBuffer places) {
-//                        if (places.getStatus().isSuccess() && places.getCount() > 0) {
-//                            final Place myPlace = places.get(0);
-//                            String title = String.valueOf(myPlace.getName());
-//                            Toast.makeText(MapsActivity.this, title, Toast.LENGTH_SHORT).show();
-//                            Log.d("FOUND PLACE", String.valueOf(myPlace.getName()));
-//                        } else {
-//                            Log.d("getTitle", "Place not found " + places.getStatus().toString());
-//                        }
-//                        places.release();
-//                    }
-//                });
-//    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.mapshelp:
+                showHelp();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void showHelp() {
+        final Snackbar snackBar = Snackbar.make(findViewById(R.id.mapscontainer),
+                "Select a location by clicking the map. Press go to search your categories",
+                Snackbar.LENGTH_INDEFINITE);
+
+        snackBar.setAction("Got it", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                snackBar.dismiss();
+            }
+        });
+        snackBar.show();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+        if (mCurrLocationMarker != null) {
+            mCurrLocationMarker.remove();
+        }
+
+        //Place current location marker
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        mMap.addMarker(new MarkerOptions().position(latLng).title("Current position"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
+
+        lat = location.getLatitude();
+        lng = location.getLongitude();
+
+        //move map camera
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+
+        //stop location updates
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        }
+    }
 }
 

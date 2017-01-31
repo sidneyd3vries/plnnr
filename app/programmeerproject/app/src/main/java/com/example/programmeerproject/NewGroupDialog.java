@@ -88,9 +88,8 @@ public class NewGroupDialog extends Activity implements View.OnClickListener {
     public String getUser(EditText et) {
         if(!Objects.equals(et.getText().toString(), "")) {
             return et.getText().toString();
-        } else {
-            return "";
         }
+        return null;
     }
 
     public ArrayList<String> getEditTextEmails() {
@@ -102,7 +101,9 @@ public class NewGroupDialog extends Activity implements View.OnClickListener {
         for (int i = 2; i < id; i++) {
             //noinspection ResourceType
             EditText dynamicEditText = (EditText)findViewById(i);
-            emails.add(getUser(dynamicEditText));
+            if (getUser(dynamicEditText) != null) {
+                emails.add(getUser(dynamicEditText));
+            }
         }
         return emails;
     }
@@ -140,12 +141,14 @@ public class NewGroupDialog extends Activity implements View.OnClickListener {
         // Returns list of uid's from entered emails
         ArrayList<String> uids = new ArrayList<>();
 
+        Log.d("EMAILIST", String.valueOf(emails));
         for (String s: emails) {
             if (emailList.contains(s)){
                 int index = emailList.indexOf(s);
                 uids.add(uidList.get(index));
             } else {
-                Toast.makeText(this, "Invalid email: " + s, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Invalid email: " + s, Toast.LENGTH_LONG).show();
+                return null;
             }
         }
         return uids;
@@ -163,9 +166,13 @@ public class NewGroupDialog extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.create_group_button:
-                //TODO Clean this code up
-                createGroup(getUidFromEmail(getEditTextEmails()), getGroupName());
-                returnHome();
+                String groupName = getGroupName();
+                ArrayList<String> emails = getEditTextEmails();
+                ArrayList<String> uids = getUidFromEmail(emails);
+                if (uids != null) {
+                    createGroup(uids, groupName);
+                    returnHome();
+                }
                 break;
             case R.id.add_edit_text:
                 addEditText(this,(LinearLayout) findViewById(R.id.edittext_layout));

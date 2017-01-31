@@ -1,20 +1,24 @@
 package com.example.programmeerproject;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Map;
 
-public class PinboardListAdapter extends BaseAdapter {
-    private final ArrayList mData;
+class PinboardListAdapter extends BaseAdapter {
+    private final ArrayList<Map.Entry<String, ArrayList<String>>> mData;
+    private final String userid;
 
-    public PinboardListAdapter(Map<String, Integer> map) {
-        mData = new ArrayList();
+    PinboardListAdapter(Map<String, ArrayList<String>> map, String uid) {
+        mData = new ArrayList<>();
         mData.addAll(map.entrySet());
+        userid = uid;
     }
 
     @Override
@@ -23,8 +27,8 @@ public class PinboardListAdapter extends BaseAdapter {
     }
 
     @Override
-    public Map.Entry<String, Integer> getItem(int position) {
-        return (Map.Entry) mData.get(position);
+    public Map.Entry<String, ArrayList<String>> getItem(int position) {
+        return mData.get(position);
     }
 
     @Override
@@ -42,19 +46,24 @@ public class PinboardListAdapter extends BaseAdapter {
             result = view;
         }
 
-        Map.Entry<String, Integer> item = getItem(position);
+        Map.Entry<String, ArrayList<String>> item = getItem(position);
 
         TextView place = (TextView) result.findViewById(R.id.place);
         TextView count = (TextView) result.findViewById(R.id.count);
+        RelativeLayout container = (RelativeLayout) result.findViewById(R.id.container);
 
         place.setText(item.getKey());
 
-        if (item.getValue() > 0) {
-            count.setText(String.valueOf(item.getValue()) + "x");
+        if (item.getValue().size() > 0 && item.getValue().contains(userid)) {
+            count.setText(String.valueOf(item.getValue().size()) + "x");
+            container.setBackgroundColor(Color.parseColor("#DDDDDD"));
+        } else if (item.getValue().size() > 0){
+            count.setText(String.valueOf(item.getValue().size()) + "x");
+            container.setBackgroundColor(Color.parseColor("#FBFFFB"));
         } else {
             count.setText("");
+            container.setBackgroundColor(Color.parseColor("#FBFFFB"));
         }
-
         return result;
     }
 }

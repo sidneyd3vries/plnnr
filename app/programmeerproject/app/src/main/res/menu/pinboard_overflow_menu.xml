@@ -9,6 +9,18 @@
         android:title="Leave group"/>
 
     <item
+        android:id="@+id/adduser"
+        android:orderInCategory="1"
+        app:showAsAction="never"
+        android:title="Add person"/>
+
+    <item
+        android:id="@+id/changename"
+        android:orderInCategory="1"
+        app:showAsAction="never"
+        android:title="Change name"/>
+
+    <item
         android:id="@+id/help"
         android:orderInCategory="1"
         app:showAsAction="never"
