@@ -11,7 +11,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="No items yet"
+            android:text="@string/no_items_yet"
             android:gravity="center"
             android:id="@+id/toemptylisttext"
             android:visibility="visible"/>

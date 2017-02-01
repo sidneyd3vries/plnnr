@@ -1,6 +1,5 @@
 package com.example.programmeerproject;
 
-import android.*;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -39,9 +38,19 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
-public class GroupActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
+/**
+ * Plnnr
+ * Sidney de Vries (10724087)
+ *
+ * Shows the groups the user is part of. Also asks first time users permission
+ * to use their location.
+ *
+ * Source for permission check:
+ * https://www.androidtutorialpoint.com/intermediate/android-map-app-showing-current-location-android/
+ */
 
-    //TODO prevent backnavigation here
+public class GroupActivity extends AppCompatActivity implements
+        GoogleApiClient.OnConnectionFailedListener {
 
     ListView listView;
     TextView emptyList;
@@ -63,10 +72,15 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.group_activity);
 
+        Log.d("ON", "CREATE");
+
+        // Build google api client
         setUpGoogleApiClient();
 
+        // Checks and asks for location permission
         checkLocationPermission();
 
+        // Sets up floating action button
         setUpFab();
 
         // Get current user
@@ -74,6 +88,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         user = mAuth.getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
+        // If somehow user is null return to SignInActivity
         if (user == null) {
             Intent intent = new Intent(this, SignInActivity.class);
             startActivity(intent);
@@ -92,13 +107,24 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // Clear HashMap to remove old data
+        groupMembers = new LinkedHashMap<>();
+        // Reload data and repopulate list
+        getUserUidMap();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        /* Creates overflow menu in toolbar */
         getMenuInflater().inflate(R.menu.group_overflow_menu, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        /* OnClickListener for overflow menu */
         switch (item.getItemId()) {
             case R.id.signout:
                 Toast.makeText(getApplicationContext(), getString(R.string.signed_out), Toast.LENGTH_SHORT).show();
@@ -111,6 +137,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
     }
 
     public void setUpFab() {
+        /* Sets up floating action button with onClick method to go to NewGroupDialog */
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.addgroupfab);
         fab.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -120,14 +147,19 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
     }
 
     public void setUpListView(final LinkedHashMap<String, ArrayList<String>> values, final ListView view) {
+        /* Sets up listview with groups the user is part of. Is called in getUserGroups()
+         User GroupListAdapter to populate view with HashMap
+         */
         GroupListAdapter adapter = new GroupListAdapter(values);
 
+        // Show or hide textview that indicates if a list is empty
         if (values.size() == 0) {
             emptyList.setVisibility(View.VISIBLE);
         } else {
             emptyList.setVisibility(View.GONE);
         }
 
+        // Set adapter and onItemClickListener
         view.setAdapter(adapter);
         view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -139,26 +171,15 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                 startActivity(intent);
             }
         });
-
-        view.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(GroupActivity.this, "Long Click", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-        });
     }
 
     public void updateUserIds() {
-        if (user != null) {
-            mDatabase.child("userids/").child(user.getUid()).setValue(user.getEmail());
-        } else {
-            Intent intent = new Intent(this, SignInActivity.class);
-            startActivity(intent);
-        }
+        /* Adds user's id and their email to userids section in database */
+        mDatabase.child("userids/").child(user.getUid()).setValue(user.getEmail());
     }
 
     private void signOut() {
+        /* Signs user out */
         // Firebase sign out
         FirebaseAuth.getInstance().signOut();
         // Google sign out
@@ -187,16 +208,33 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
     public void getUserUidMap() {
+        /* Gets map of userid and user email. Map is used to show who is part of the group */
         DatabaseReference userids = mDatabase.child("userids");
         userids.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot userid: dataSnapshot.getChildren()) {
-                    //Log.d("USERID", String.valueOf(userid));
+                    // Add all userid's and emails to map
                     userMap.put(userid.getKey(), userid.getValue().toString());
                 }
-                Log.d("@@@MAP@@@", String.valueOf(userMap));
+                // Get groups user is part of
                 getUserGroups(userMap);
             }
             @Override
@@ -222,7 +260,6 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                             userlist.add(usermap.get(userid.getKey()));
                         }
                     }
-
                     // If user is in a group update groupMembers map used for listview
                     if (userlist.contains(user.getEmail())) {
                         mGroupIds.add(group.getKey());
@@ -240,7 +277,13 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         });
     }
 
-    public void buildGoogleApiClient() {
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
+    }
+
+    public void setUpGoogleApiClient() {
+        /* Build google api client with correct api's */
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -248,33 +291,12 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                 .requestEmail()
                 .build();
 
-        // Build a GoogleApiClient with access to the Google Sign-In API and the
-        // options specified by gso.
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            default:
-                break;
-        }
-    }
-
-    public void setUpGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .addApi(LocationServices.API)
                 .enableAutoManage(this, this)
                 .build();

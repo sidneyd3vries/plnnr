@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:id="@+id/emptylist"
         android:gravity="center"
-        android:text="No groups yet"
+        android:text="@string/no_groups_yet"
         android:textSize="18sp"
         android:visibility="invisible"/>
 

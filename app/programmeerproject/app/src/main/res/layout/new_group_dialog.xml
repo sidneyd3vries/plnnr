@@ -4,32 +4,32 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="16dp"
-    android:minWidth="300dp">
+    android:minWidth="300dp"
+    android:background="@color/background">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Group name"
+        android:text="@string/group_name"
         android:textSize="20sp"/>
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/groupnameedittext"
-        android:hint="Enter group name" />
+        android:hint="@string/enter_group_name" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:id="@+id/edittext_layout"
-        android:layout_below="@+id/groupnameedittext"
         android:paddingTop="10dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Friends"
+            android:text="@string/friends"
             android:textSize="16sp"/>
 
         <LinearLayout
@@ -40,25 +40,34 @@
             <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="Enter gmail"
+                android:hint="@string/enter_gmail"
                 android:layout_weight="200"
                 android:id="@+id/et1"/>
 
-            <Button
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:text="+"
-                android:layout_weight="1"
-                android:layout_gravity="end"
-                android:id="@+id/add_edit_text"/>
+                <ImageButton
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:scaleType="fitCenter"
+                    android:padding="5dp"
+                    android:background="@color/colorPrimary"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_done"
+                    android:layout_weight="1"
+                    android:layout_gravity="end|center_vertical"
+                    android:id="@+id/add_edit_text"/>
 
         </LinearLayout>
     </LinearLayout>
 
-    <Button
+    <ImageButton
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:scaleType="fitCenter"
+        android:padding="5dp"
+        android:minHeight="56dp"
+        android:background="@color/colorPrimary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="make"
+        android:src="@drawable/ic_go"
         android:id="@+id/create_group_button"
         android:layout_gravity="end"/>
 

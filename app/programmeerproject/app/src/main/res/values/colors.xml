@@ -5,8 +5,9 @@
     <color name="colorAccent">#A72AD4</color>
     <color name="tabcolor">#72BF9E</color>
     <color name="divider">#666666</color>
-    <color name="violet">#d8b0ff</color>
+    <color name="violet">#D8B0ff</color>
     <color name="green">#8BE59A</color>
-    <color name="background">#FBFFFB</color>
+    <color name="background">#E1EfE9</color>
+    <color name="offwhite">#FBFFFB</color>
     <color name="grey">#DDDDDD</color>
 </resources>

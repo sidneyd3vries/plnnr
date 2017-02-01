@@ -38,10 +38,6 @@
             android:theme="@style/Titlebar"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".FragmentTest"
-            android:theme="@style/NoTitleBar"
-            android:screenOrientation="portrait"/>
-        <activity
             android:name=".PinboardTabActivity"
             android:theme="@style/NoTitleBar"
             android:screenOrientation="portrait"/>

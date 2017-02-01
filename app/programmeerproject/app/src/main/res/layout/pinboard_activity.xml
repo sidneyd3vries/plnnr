@@ -18,7 +18,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="From"
+                android:text="@string/fromtext"
                 android:textSize="16sp"/>
             <ListView
                 android:id="@+id/fromlist"
@@ -37,7 +37,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="To"
+                android:text="@string/totext"
                 android:textSize="16sp"/>
             <ListView
                 android:id="@+id/tolist"

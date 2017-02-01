@@ -5,4 +5,16 @@
     <string name="signed_out">Signed out</string>
     <string name="groups">Groups</string>
     <string name="plus">+</string>
+    <string name="enter_gmail">Enter gmail</string>
+    <string name="friends">Friends</string>
+    <string name="enter_group_name">Enter group name</string>
+    <string name="group_name">Group name</string>
+    <string name="new_group_name">New group name</string>
+    <string name="email">Email</string>
+    <string name="no_items_yet">No items yet</string>
+    <string name="no_groups_yet">No groups yet</string>
+    <string name="from">From:</string>
+    <string name="fromtext">From</string>
+    <string name="to">To:</string>
+    <string name="totext">To</string>
 </resources>

@@ -24,6 +24,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+/**
+ * Plnnr
+ * Sidney de Vries (10724087)
+ *
+ * Fragment manager of FromTab and ToTab. Tabs are set up and also shows overflow
+ * menu where users can leave the group, add people to the group and change the name
+ * of the group.
+ */
+
 public class PinboardTabActivity extends AppCompatActivity implements TabLayout.OnTabSelectedListener {
 
     private ViewPager viewPager;
@@ -78,6 +87,7 @@ public class PinboardTabActivity extends AppCompatActivity implements TabLayout.
     }
 
     public void setUpFab() {
+        /* Sets up floating action button used to go to the map activity */
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.addplanfab);
         fab.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -90,6 +100,7 @@ public class PinboardTabActivity extends AppCompatActivity implements TabLayout.
     }
 
     private void addTabs() {
+        /* Tabspageradapter used to set the tabs */
         TabsPagerAdapter tabsAdapter = new TabsPagerAdapter(getSupportFragmentManager());
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.setAdapter(tabsAdapter);
@@ -130,6 +141,7 @@ public class PinboardTabActivity extends AppCompatActivity implements TabLayout.
     }
 
     public void goToDialog(Class dialogClass) {
+        /* Universal method to go to a dialog */
         Intent intent = new Intent(this, dialogClass);
         intent.putExtra("groupid", groupId);
         intent.putExtra("groupname", groupName);
@@ -138,9 +150,10 @@ public class PinboardTabActivity extends AppCompatActivity implements TabLayout.
     }
 
     public void leaveGroup() {
+        /* Removes user from group after asking if theyre sure */
         Snackbar.make(findViewById(android.R.id.content),
                 "Are you sure you want to leave the group?",
-                Snackbar.LENGTH_INDEFINITE)
+                Snackbar.LENGTH_LONG)
                 .setAction("Yes!", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -157,14 +170,12 @@ public class PinboardTabActivity extends AppCompatActivity implements TabLayout.
                                     groupToLeave.setValue(null);
                                     DatabaseReference dataToDelete = mDatabase.child("data").child(groupId);
                                     dataToDelete.setValue(null);
-
                                     exit();
                                 } else {
                                     groupToLeave.child(user.getUid()).setValue(null);
                                     exit();
                                 }
                             }
-
                             @Override
                             public void onCancelled(DatabaseError databaseError) {
                                 Toast.makeText(getApplicationContext(), "Database error", Toast.LENGTH_SHORT).show();
@@ -177,12 +188,23 @@ public class PinboardTabActivity extends AppCompatActivity implements TabLayout.
     }
 
     public void getHelp() {
-        Snackbar.make(findViewById(android.R.id.content),
+        /* Show a small help snackbar to user */
+        final Snackbar snackBar = Snackbar.make(findViewById(android.R.id.content),
                 "Click an item to vote. Long click an item to delete it or find it on the map.",
-                Snackbar.LENGTH_LONG).show();
+                Snackbar.LENGTH_INDEFINITE);
+
+        snackBar.setAction("Got it", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                snackBar.dismiss();
+            }
+        })
+        .setActionTextColor(Color.WHITE);
+        snackBar.show();
     }
 
     public void exit() {
+        /* Makes user exit group after leaving */
         Intent intent = new Intent(getApplicationContext(), GroupActivity.class);
         startActivity(intent);
         finish();

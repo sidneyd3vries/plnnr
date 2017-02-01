@@ -1,5 +1,14 @@
 package com.example.programmeerproject;
 
+/**
+ * Plnnr
+ * Sidney de Vries (10724087)
+ *
+ * Singleton used to keep groupId consistent when using PinoardTabActivity tabs
+ *
+ * Source: https://gist.github.com/Akayh/5566992
+ */
+
 public class GroupIdSingleton {
 
     private static GroupIdSingleton mInstance = null;

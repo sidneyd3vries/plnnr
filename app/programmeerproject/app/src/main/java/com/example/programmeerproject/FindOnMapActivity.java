@@ -12,7 +12,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +36,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
+
+/**
+ * Plnnr
+ * Sidney de Vries (10724087)
+ *
+ * Activity is reached from PinboardItemDialog.class.
+ * Here the selected item is shown on a map. Map also
+ * shows users current location if available.
+ *
+ * Source for location:
+ * Source:https://www.androidtutorialpoint.com/intermediate/android-map-app-showing-current-location-android/
+ */
 
 public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMapClickListener,
@@ -64,6 +75,7 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.find_on_map_activity);
 
+        // Get data from intent
         Intent intent = getIntent();
         placeName = intent.getStringExtra("name");
 
@@ -79,7 +91,8 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
                 .findFragmentById(R.id.findonmap);
         mapFragment.getMapAsync(this);
 
-        rad = 3000;
+        // Set search radius
+        rad = 5000;
     }
 
     @Override
@@ -111,6 +124,7 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
     public void onConnectionSuspended(int i) { }
 
     public void setUpGoogleApiClient() {
+        /* Builds google api client with correct api's */
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
@@ -121,19 +135,21 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     public String prepareTextQuery(String name) {
+        /* Returns correctly formatted query to be used in the api search */
         String formattedName = name.replaceAll("[^a-zA-Z0-9 ]", "").replaceAll(" ","+");
         return "https://maps.googleapis.com/maps/api/place/textsearch/json?query=" + formattedName + "&key=" + apikey;
     }
 
     public String queryJson(String url) throws ExecutionException, InterruptedException {
-        MyAsyncTask asyncTask = new MyAsyncTask();
+        /* Queries url from prepareTextQuery() and returns the resulting json */
+        PlacesApiAsyncTask asyncTask = new PlacesApiAsyncTask();
         String result;
         result = asyncTask.execute(url).get();
-        Log.d("RESULT", result);
         return result;
     }
 
     public void addMarker(String jsonString) throws JSONException {
+        /* Adds marker of selected place on the map by getting data from queryJson() */
         // Convert string to JSONObject
         JSONObject json = new JSONObject(jsonString);
 
@@ -154,10 +170,13 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
                 .position(point)
                 .title(name)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
+
+        // Move camera to marker
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 14));
     }
 
     public void fillDetailView(String jsonString) throws JSONException {
+        /* Fills detailView with data from a json string */
         JSONObject json = new JSONObject(jsonString);
 
         // Get result from jsonArray
@@ -244,6 +263,9 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
 
     @Override
     public void onLocationChanged(Location location) {
+        /* Responsible for adding current location marker to map if current
+         location is available
+         */
         mLastLocation = location;
         if (mCurrLocationMarker != null) {
             mCurrLocationMarker.remove();

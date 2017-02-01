@@ -3,6 +3,7 @@ package com.example.programmeerproject;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -11,7 +12,6 @@ import android.support.design.widget.Snackbar;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -53,6 +53,17 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Plnnr
+ * Sidney de Vries (10724087)
+ *
+ * Activity where Google places api is queried and results are written to
+ * group database. Shows current location is user gave permission.
+ *
+ * Source for location:
+ * Source:https://www.androidtutorialpoint.com/intermediate/android-map-app-showing-current-location-android/
+ */
+
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMapClickListener,
         AdapterView.OnItemSelectedListener,
@@ -79,12 +90,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     String groupId;
     String groupName;
 
-    String[] types = {"amusement_park", "aquarium",
-            "art_gallery", "bar", "book_store",
-            "bowling_alley", "cafe", "campground",
-            "casino", "department_store", "movie_theater",
-            "museum", "night_club", "park",
-            "restaurant", "shopping_mall", "zoo"};
+    String[] types = {"Amusement park", "Aquarium",
+            "Art gallery", "Bar", "Book store",
+            "Bowling alley", "Cafe", "Campground",
+            "Casino", "Department_store", "Movie theater",
+            "Museum", "Night club", "Park",
+            "Restaurant", "Shopping mall", "Zoo"};
 
     Spinner fromspinner;
     Spinner tospinner;
@@ -98,9 +109,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     ArrayAdapter<String> fromadapter;
     ArrayAdapter<String> toadapter;
 
-    ArrayList<String> receivedData = new ArrayList<>();
-    ArrayList<String> keyList = new ArrayList<>();
-
     LocationRequest mLocationRequest;
     Location mLastLocation;
 
@@ -111,8 +119,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
 
+        // Set up floating action button
         setUpFab();
 
+        // Set title in toolbar
         setTitle("Find places");
 
         // Get api key
@@ -139,8 +149,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Intent intent = getIntent();
         groupId = intent.getStringExtra("groupid");
         groupName = intent.getStringExtra("groupname");
-
-        setDatabaseListener();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -179,6 +187,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void setUpGoogleApiClient() {
+        /* Build google api client with correct api's */
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
@@ -189,36 +198,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void setUpFab() {
+        /* Set up floating action button with onClick action
+        to query the api and show results on map
+        */
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.mapSearch);
         fab.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                mMap.clear();
+                // Get text from edittextx
                 fromtext = fromedittext.getText().toString();
                 totext = toedittext.getText().toString();
 
+                // If user marked no location, tell them
                 if (lat == null || lng == null) {
                     Toast.makeText(getApplicationContext(), "Need location", Toast.LENGTH_SHORT).show();
                 } else {
+                    // If spinners have same category and editTexts are empty, tell user
+                    // spinners cant be same category
                     if (Objects.equals(fromitem, toitem) && Objects.equals(fromtext, "") && Objects.equals(totext, "")) {
                         Toast.makeText(getApplicationContext(), "Same category", Toast.LENGTH_SHORT).show();
                     } else {
+                        // Here input is valid, so clear previous results from map
                         mMap.clear();
+                        // If editTexts are empty, query both spinners
                         if (Objects.equals(fromtext, "") && Objects.equals(totext, "")) {
                             prepareQuery(false, false);
+                        // Else if only one editText is filled in, query that and the other spinner
                         } else if (Objects.equals(fromtext, "") && !Objects.equals(totext, "")) {
                             prepareQuery(false, true);
                         } else if (!Objects.equals(fromtext, "") && Objects.equals(totext, "")) {
                             prepareQuery(true, false);
+                        // Else query both editTexts
                         } else {
                             prepareQuery(true, true);
                         }
                         try {
+                            // Set jsonStrings
                             String from = queryJson(fromquery);
                             String to = queryJson(toquery);
 
+                            // Put query results in JSONArray
                             JSONArray fromArray = getResults(from);
                             JSONArray toArray = getResults(to);
 
+                            // Add markers of found places
                             addMarkers(fromArray, 270, "from");
                             addMarkers(toArray, 120, "to");
                         } catch (ExecutionException | InterruptedException | JSONException e) {
@@ -247,6 +269,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnectionSuspended(int i) { }
 
     public void initSpinner(Spinner spinner, String[] stringArray, ArrayAdapter<String> aAdapter) {
+        /* Set up spinners and onItemSelectedListener */
         aAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stringArray);
         aAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(aAdapter);
@@ -254,6 +277,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public String prepareTextQuery(String name) {
+        /* Format text query so the api will accept it */
         String formattedName = name.replaceAll("[^a-zA-Z0-9 ]", "").replaceAll(" ","+");
         return "https://maps.googleapis.com/maps/api/place/textsearch/json?query=" +
                 formattedName +
@@ -262,7 +286,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void prepareQuery(boolean fromtext, boolean totext) {
+        /* Set from and to queries matching with filled in editTexts */
         // TODO use pagetoken to get more than 20 results
+        // If editText is filled in, use data from there
+        // Else use data from spinner
         if (fromtext) {
             fromquery = prepareTextQuery(fromedittext.getText().toString());
         } else {
@@ -283,7 +310,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public String queryJson(String url) throws ExecutionException, InterruptedException {
-        MyAsyncTask asyncTask = new MyAsyncTask();
+        /* Uses asynctask to query the api and returns the resulting json */
+        PlacesApiAsyncTask asyncTask = new PlacesApiAsyncTask();
         String result;
 
         result = asyncTask.execute(url).get();
@@ -291,8 +319,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public JSONArray getResults(String json) throws JSONException {
+        /* Get all api results and put them in a JSONArray */
         JSONObject input = new JSONObject(json);
 
+        // If status is not ok, return empty JSONArray to prevent nullpointers
         if (!Objects.equals(input.getString("status"), "OK")) {
             Toast.makeText(this, "No item found in category", Toast.LENGTH_SHORT).show();
             return new JSONArray();
@@ -302,6 +332,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public LatLng getCoordinates(JSONObject json) throws  JSONException {
+        /* Get coordinates from JSONObject */
         Double lat = json.getJSONObject("geometry").getJSONObject("location").getDouble("lat");
         Double lng = json.getJSONObject("geometry").getJSONObject("location").getDouble("lng");
 
@@ -309,14 +340,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public String getName(JSONObject json) throws JSONException {
+        /* Gets name from JSONObject */
         return json.getString("name");
     }
 
     public String getAddress(JSONObject json) throws JSONException {
+        /* Gets address from JSONObject */
         return json.getString("formatted_address");
     }
 
     public void addMarkers(JSONArray array, float color, String dir) {
+        /* Adds markers for every place found by the api */
         for(int n = 0; n < array.length(); n++) {
             try {
                 JSONObject object = array.getJSONObject(n);
@@ -332,21 +366,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public String stripInput(String input) {
-        /** Strips string from dots, hashtags, dollar signs
-         * and square brackets. This prevents a FireBase error.
+        /* Strips string from dots, hashtags, dollar signs
+         and square brackets. This prevents a FireBase error.
          */
-        return input.replaceAll("[.#$\\[\\]]", "");
+        return input.replaceAll("[.#$\\[\\]]", "").replaceAll("/", " ");
     }
 
     public void writeToGroupDb(final String place, final String dir, final String groupId){
+        /* Adds found item to group database */
         DatabaseReference toWrite = mDatabase.child("data").child(groupId).child(dir);
         toWrite.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 if (!snapshot.hasChild(stripInput(place))) {
+                    // If items doesn't exist in database, add it
                     mDatabase.child("data").child(groupId).child(dir).child(stripInput(place)).child("place").setValue("holder");
                     Toast.makeText(getApplicationContext(), "Added", Toast.LENGTH_SHORT).show();
                 } else {
+                    // Item is already in database, so tell the user
                     Toast.makeText(getApplicationContext(), "Item already exists", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -358,66 +395,52 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void setDatabaseListener() {
-        // Database reader
-        DatabaseReference personalDb = mDatabase.child("data/").child(groupId);
-        personalDb.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.getValue() != null) {
-                    keyList.clear();
-                    for (DataSnapshot child : dataSnapshot.getChildren()) {
-                        receivedData.add(String.valueOf(child.getValue()));
-                        keyList.add(child.getKey());
-                    }
-                } else {
-                    Log.d("dbListener", "no items yet");
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.d("MainActivity", String.valueOf(databaseError));
-            }
-        });
-    }
-
     public void showDetails(Marker marker) throws JSONException{
+        /* Show detailview that displays information of selected place */
         JSONObject data = (JSONObject) marker.getTag();
 
+        // Get data from JSONObject
         String name = getName(data);
         String address = getAddress(data);
         String direction = data.getString("direction");
 
         View layout = findViewById(R.id.detailspopup);
 
+        // Find views
         TextView nameView = (TextView) findViewById(R.id.name);
         TextView addressView = (TextView) findViewById(R.id.address);
         TextView directionView = (TextView) findViewById(R.id.direction);
 
+        // Add data to views
         nameView.setText(name);
         addressView.setText(address);
         directionView.setText(direction);
 
+        // Show invisible layout
         layout.setVisibility(View.VISIBLE);
     }
 
     public void hideDetails() {
+        /* Hides detailview */
         View layout = findViewById(R.id.detailspopup);
         layout.setVisibility(View.INVISIBLE);
     }
 
     @Override
     public void onMapClick(LatLng point) {
-        boolean ownmarker = true;
+        /* Map click listener, used to place own marker */
         mMap.clear();
+
+        // Add marker on clicked point
         mMap.addMarker(new MarkerOptions().position(point)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
-                .setTag(ownmarker);
+                .setTag(true);
 
+        // Set global lat and lng
         lat = point.latitude;
         lng = point.longitude;
 
+        // Hide detail view
         hideDetails();
     }
 
@@ -442,20 +465,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Set up listener
         mMap.setOnMapClickListener(this);
 
+        // Set marker on current location
         if (lat != null || lng != null) {
             LatLng latLng = new LatLng(lat, lng);
             mMap.addMarker(new MarkerOptions().position(latLng));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
+        // If location is not available, show the whole country
         } else {
-            LatLng amsterdam = new LatLng(52.370216, 4.895168);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(amsterdam, 7));
+            LatLng netherlands = new LatLng(52.370216, 4.895168);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(netherlands, 8));
         }
 
         // Marker click listener
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                Log.d("MARKER", String.valueOf(marker.getTag()));
+                // If marker is not own placed marker, show details
                 if (Objects.equals(marker.getTag(), true)) {
                     Toast.makeText(MapsActivity.this, "Own marker", Toast.LENGTH_SHORT).show();
                 } else {
@@ -476,18 +501,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
-    }
+    public void onNothingSelected(AdapterView<?> parent) { }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        /* OnItemSelected of spinners */
         switch (parent.getId()) {
             case R.id.fromspinner:
-                fromitem = parent.getItemAtPosition(position).toString();
+                fromitem = parent.getItemAtPosition(position).toString().replaceAll(" ", "_").toLowerCase();
                 break;
             case R.id.tospinner:
-                toitem = parent.getItemAtPosition(position).toString();
+                toitem = parent.getItemAtPosition(position).toString().replaceAll(" ", "_").toLowerCase();
                 break;
         }
     }
@@ -507,12 +531,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        /* Creates overflow menu in toolbar */
         getMenuInflater().inflate(R.menu.maps_menu, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        /* OnItemSelected of overflow menu */
         switch (item.getItemId()) {
             case R.id.mapshelp:
                 showHelp();
@@ -523,8 +549,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void showHelp() {
+        /* Show a small help snackbar to user */
         final Snackbar snackBar = Snackbar.make(findViewById(R.id.mapscontainer),
-                "Select a location by clicking the map. Press go to search your categories",
+                "Select a location by clicking the map. Press go to search your categories.",
                 Snackbar.LENGTH_INDEFINITE);
 
         snackBar.setAction("Got it", new View.OnClickListener() {
@@ -532,7 +559,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
                 snackBar.dismiss();
             }
-        });
+        })
+        .setActionTextColor(Color.WHITE);
         snackBar.show();
     }
 

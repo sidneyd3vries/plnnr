@@ -3,19 +3,27 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="@color/background">
 
     <EditText
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:id="@+id/adduseredittext"
-        android:hint="email"
+        android:layout_gravity="center_vertical"
+        android:hint="@string/email"
         android:layout_weight="100"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+"
+    <ImageButton
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:scaleType="fitCenter"
+        android:padding="5dp"
+        android:src="@drawable/ic_done"
+        android:background="@color/colorPrimary"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_vertical"
         android:id="@+id/adduserbutton"
         android:layout_weight="1"/>
 

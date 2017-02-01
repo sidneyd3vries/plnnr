@@ -3,19 +3,26 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    android:background="@color/background">
 
     <EditText
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:id="@+id/changenameedittext"
-        android:hint="New group name"
+        android:hint="@string/new_group_name"
         android:layout_weight="100"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Change"
+    <ImageButton
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:scaleType="fitCenter"
+        android:padding="5dp"
+        android:background="@color/colorPrimary"
+        android:src="@drawable/ic_go"
+        android:layout_width="70dp"
+        android:layout_height="35dp"
+        android:layout_gravity="center_vertical"
         android:id="@+id/changenamebutton"
         android:layout_weight="1"/>
 

@@ -4,6 +4,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
+/**
+ * Plnnr
+ * Sidney de Vries (10724087)
+ *
+ * Tabs pager adapter used to show FromTab and ToTab in PinboardTabActivity
+ */
+
+
 public class TabsPagerAdapter extends FragmentPagerAdapter {
 
     public TabsPagerAdapter(FragmentManager fm) {

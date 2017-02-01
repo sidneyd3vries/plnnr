@@ -11,6 +11,14 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Map;
 
+/**
+ * Plnnr
+ * Sidney de Vries (10724087)
+ *
+ * List adapter for the lists in FromTab and ToTab. Takes HashMap of String and ArrayList<String>
+ * and converts the ArrayList in an amount of votes and shows the amount in the listView.
+ */
+
 class PinboardListAdapter extends BaseAdapter {
     private final ArrayList<Map.Entry<String, ArrayList<String>>> mData;
     private final String userid;
@@ -54,15 +62,19 @@ class PinboardListAdapter extends BaseAdapter {
 
         place.setText(item.getKey());
 
+        // ArrayList is list of all user id's that voted on item
+        // If people have voted on item including current user, set color to darker
         if (item.getValue().size() > 0 && item.getValue().contains(userid)) {
             count.setText(String.valueOf(item.getValue().size()) + "x");
-            container.setBackgroundColor(Color.parseColor("#DDDDDD"));
+            container.setBackgroundColor(Color.parseColor("#39A679"));
+        // Else if there are votes but not of current user, set color to background color
         } else if (item.getValue().size() > 0){
             count.setText(String.valueOf(item.getValue().size()) + "x");
-            container.setBackgroundColor(Color.parseColor("#FBFFFB"));
+            container.setBackgroundColor(Color.parseColor("#E1EfE9"));
+        // Else there are no votes, set color to backgorund color
         } else {
             count.setText("");
-            container.setBackgroundColor(Color.parseColor("#FBFFFB"));
+            container.setBackgroundColor(Color.parseColor("#E1EfE9"));
         }
         return result;
     }

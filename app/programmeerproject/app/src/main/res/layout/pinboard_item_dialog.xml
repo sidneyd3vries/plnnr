@@ -3,28 +3,36 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:minWidth="330dp">
+    android:background="@color/background">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:id="@+id/buttonview">
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="delete item"
-            android:layout_weight="1"
+        <ImageButton
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:src="@drawable/ic_delete"
+            android:scaleType="fitCenter"
+            android:padding="15dp"
+            android:background="@color/colorPrimary"
+            android:layout_alignParentStart="true"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:id="@+id/deleteitem"/>
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="find on map"
-            android:layout_weight="1"
+        <ImageButton
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:src="@drawable/ic_search"
+            android:scaleType="fitCenter"
+            android:padding="15dp"
+            android:background="@color/colorPrimary"
+            android:layout_alignParentEnd="true"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:id="@+id/findonmap"/>
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </RelativeLayout>
