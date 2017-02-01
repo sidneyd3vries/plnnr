@@ -36,3 +36,15 @@ Groups are working 95%. You can not leave a group yet but that is something that
 
 # Day 14
 Finally got working that you can see who are in your group, this took way more work then i expected it to. This had mainly to do with the way I structured my database. But I got it working. I also got working that you can delete items from the lists, you can leave groups and I did some small ui tweaks such as overflow menu's and floating action buttons. THe biggest thing to do now is more input validation and some extra's such as another search option on the map activity, and the possibility to find a list item on the map immediately.
+
+# Day 15
+Started working on tabs for the pinboard activity, and started implementing the current location of the user to show in the map activities. Got both of these working in the weekend. For the tabs I used a singleton to communicate the group identifier between them, because after lots of work I couldnt get this working the "normal" way.
+
+# Day 16
+Started restructuring some code and fixed some bugs with sign out/sign in. Also implemented asking for location permission when the user is signed in, instead of when the map opens. This solved a bug that made the app crash. 
+
+# Day 17
+More code restructuring and did some changes to the UI of the app. I changed the login screen and the background of the app. Also made the map activity nicer. 
+
+# Day 18
+Working on report and more code restructuring
