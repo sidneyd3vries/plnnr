@@ -108,12 +108,14 @@ public class GroupActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
         // Clear HashMaps and ArrayLists to remove old data
-        groupMembers = new LinkedHashMap<>();
-        userMap = new LinkedHashMap<>();
-        mGroupNames = new ArrayList<>();
-        mGroupIds = new ArrayList<>();
-        // Reload data and repopulate list
-        getUserIdMap();
+        if (user != null) {
+            groupMembers = new LinkedHashMap<>();
+            userMap = new LinkedHashMap<>();
+            mGroupNames = new ArrayList<>();
+            mGroupIds = new ArrayList<>();
+            // Reload data and repopulate list
+            getUserIdMap();
+        }
     }
 
     @Override
