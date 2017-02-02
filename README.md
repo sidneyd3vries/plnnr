@@ -56,6 +56,9 @@ https://www.androidtutorialpoint.com/intermediate/android-map-app-showing-curren
 Google Places Api for Android: 
 https://developers.google.com/places/android-api/
 
+Code quality:
+https://bettercodehub.com/
+
 ### License
 
 This is free and unencumbered software released into the public domain.
