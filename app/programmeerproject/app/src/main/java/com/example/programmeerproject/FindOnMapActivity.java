@@ -58,6 +58,11 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
 
+    LocationRequest mLocationRequest;
+    Location mLastLocation;
+
+    Marker mCurrLocationMarker;
+
     public Double lng;
     public Double lat;
     public int rad;
@@ -65,10 +70,7 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
     String apikey;
     String placeName;
 
-    LocationRequest mLocationRequest;
-    Location mLastLocation;
-
-    Marker mCurrLocationMarker;
+    MapsMethods mm = new MapsMethods();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -219,16 +221,7 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
         mMap = googleMap;
 
         //Initialize Google Play Services
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                mMap.setMyLocationEnabled(true);
-            }
-        }
-        else {
-            mMap.setMyLocationEnabled(true);
-        }
+        mm.checkGooglePlayServices(mMap, this);
 
         // Set up listener
         mMap.setOnMapClickListener(this);
@@ -272,17 +265,7 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
         }
 
         //Place current location marker
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-        mMap.addMarker(new MarkerOptions().position(latLng).title("Current position"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
-
-        lat = location.getLatitude();
-        lng = location.getLongitude();
-
-        //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        mm.getLocation(mMap, location);
 
         //stop location updates
         if (mGoogleApiClient != null) {

@@ -124,7 +124,7 @@ public class PinboardTabActivity extends AppCompatActivity implements TabLayout.
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.leavegroup:
-                leaveGroup();
+                leaveGroupConfirmation();
                 return true;
             case R.id.help:
                 getHelp();
@@ -149,42 +149,50 @@ public class PinboardTabActivity extends AppCompatActivity implements TabLayout.
         finish();
     }
 
-    public void leaveGroup() {
-        /* Removes user from group after asking if theyre sure */
+    public void leaveGroupConfirmation() {
+        /* Removes user from group after asking if they're sure */
         Snackbar.make(findViewById(android.R.id.content),
                 "Are you sure you want to leave the group?",
                 Snackbar.LENGTH_LONG)
                 .setAction("Yes!", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        final DatabaseReference groupToLeave = mDatabase.child("groups").child(groupId);
-                        groupToLeave.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                int count = 0;
-                                for (DataSnapshot child: dataSnapshot.getChildren()) {
-                                    count++;
-                                }
-                                // If one user left, delete group
-                                if (count == 2) {
-                                    groupToLeave.setValue(null);
-                                    DatabaseReference dataToDelete = mDatabase.child("data").child(groupId);
-                                    dataToDelete.setValue(null);
-                                    exit();
-                                } else {
-                                    groupToLeave.child(user.getUid()).setValue(null);
-                                    exit();
-                                }
-                            }
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                Toast.makeText(getApplicationContext(), "Database error", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        leaveGroup();
                     }
                 })
                 .setActionTextColor(Color.WHITE)
                 .show();
+    }
+
+    public void leaveGroup() {
+        final DatabaseReference groupToLeave = mDatabase.child("groups").child(groupId);
+        groupToLeave.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                int count = 0;
+                for (DataSnapshot child: dataSnapshot.getChildren()) {
+                    count++;
+                }
+                // If one user left, delete group
+                if (count == 2) {
+                    deleteGroup(groupToLeave);
+                } else {
+                    groupToLeave.child(user.getUid()).setValue(null);
+                    exit();
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(getApplicationContext(), "Database error", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public void deleteGroup(DatabaseReference group) {
+        group.setValue(null);
+        DatabaseReference dataToDelete = mDatabase.child("data").child(groupId);
+        dataToDelete.setValue(null);
+        exit();
     }
 
     public void getHelp() {

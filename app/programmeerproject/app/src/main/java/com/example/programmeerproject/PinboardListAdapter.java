@@ -49,7 +49,8 @@ class PinboardListAdapter extends BaseAdapter {
         final View result;
 
         if (view == null) {
-            result = LayoutInflater.from(parent.getContext()).inflate(R.layout.pinboard_adapter_item, parent, false);
+            result = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.pinboard_adapter_item, parent, false);
         } else {
             result = view;
         }
@@ -63,19 +64,24 @@ class PinboardListAdapter extends BaseAdapter {
         place.setText(item.getKey());
 
         // ArrayList is list of all user id's that voted on item
+        colorListItem(item, count, container);
+        return result;
+    }
+
+    public void colorListItem(Map.Entry<String, ArrayList<String>> item,
+                              TextView count,
+                              RelativeLayout container) {
         // If people have voted on item including current user, set color to darker
         if (item.getValue().size() > 0 && item.getValue().contains(userid)) {
             count.setText(String.valueOf(item.getValue().size()) + "x");
             container.setBackgroundColor(Color.parseColor("#39A679"));
-        // Else if there are votes but not of current user, set color to background color
+            // Else if there are votes but not of current user, set color to background color
         } else if (item.getValue().size() > 0){
             count.setText(String.valueOf(item.getValue().size()) + "x");
             container.setBackgroundColor(Color.parseColor("#E1EfE9"));
-        // Else there are no votes, set color to backgorund color
         } else {
             count.setText("");
             container.setBackgroundColor(Color.parseColor("#E1EfE9"));
         }
-        return result;
     }
 }

@@ -51,36 +51,39 @@ public class ChangeNameDialog extends Activity implements View.OnClickListener {
         nameEditText = (EditText) findViewById(R.id.changenameedittext);
     }
 
-    public void changeGroupName() {
+    public void changeGroupNameCheck() {
         /* Changes the group name from what is entered in the edit text */
-        String newName = nameEditText.getText().toString();
+        String newName = nameEditText.getText().toString().trim();
 
         // If something is entered
         if (!newName.matches("")) {
-            // Make correct database reference
-            DatabaseReference group = mDatabase.child("groups").child(groupId);
-
-            // Change the name
-            group.child("name").setValue(newName);
-
-            Toast.makeText(this, "Name changed", Toast.LENGTH_SHORT).show();
-
-            // Send correct data back with intent
-            Intent intent = new Intent(getApplicationContext(), PinboardTabActivity.class);
-            intent.putExtra("groupid", groupId);
-            intent.putExtra("groupname", newName);
-            startActivity(intent);
-            finish();
+            changeGroupName(newName);
         } else {
             Toast.makeText(this, "Can not be empty", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void changeGroupName(String newName) {
+        // Make correct database reference
+        DatabaseReference group = mDatabase.child("groups").child(groupId);
+
+        // Change the name
+        group.child("name").setValue(newName);
+        Toast.makeText(this, "Name changed", Toast.LENGTH_SHORT).show();
+
+        // Send correct data back with intent
+        Intent intent = new Intent(getApplicationContext(), PinboardTabActivity.class);
+        intent.putExtra("groupid", groupId);
+        intent.putExtra("groupname", newName);
+        startActivity(intent);
+        finish();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.changenamebutton:
-                changeGroupName();
+                changeGroupNameCheck();
                 break;
             default:
                 break;

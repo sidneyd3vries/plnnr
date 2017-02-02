@@ -72,8 +72,6 @@ public class GroupActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.group_activity);
 
-        Log.d("ON", "CREATE");
-
         // Build google api client
         setUpGoogleApiClient();
 
@@ -109,8 +107,10 @@ public class GroupActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        // Clear HashMap to remove old data
+        // Clear HashMap and ArrayLists to remove old data
         groupMembers = new LinkedHashMap<>();
+        mGroupNames = new ArrayList<>();
+        mGroupIds = new ArrayList<>();
         // Reload data and repopulate list
         getUserUidMap();
     }

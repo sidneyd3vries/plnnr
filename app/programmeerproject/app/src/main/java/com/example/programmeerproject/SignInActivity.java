@@ -202,24 +202,6 @@ public class SignInActivity extends AppCompatActivity implements
         }
     }
 
-    private void signOut() {
-        /* Signs user out */
-        // Firebase sign out
-        if (FirebaseAuth.getInstance() == null) {
-            FirebaseAuth.getInstance().signOut();
-        }
-        // Google sign out
-        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
-                new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
-                        Intent intent = new Intent(getApplicationContext(), SignInActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(intent);
-                    }
-                });
-    }
-
     private void updateUI(boolean signedIn) {
         if (signedIn) {
             Intent intent = new Intent(this, GroupActivity.class)

@@ -27,11 +27,11 @@ public class FromTab extends Fragment {
 
     View view;
 
-    private DatabaseReference mDatabase;
-    private FirebaseUser user;
+    public DatabaseReference mDatabase;
+    public FirebaseUser user;
 
-    String groupId;
-    String groupName;
+    public String groupId;
+    public String groupName;
 
     ListView fromListView;
 
@@ -41,7 +41,8 @@ public class FromTab extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.from_tab, container, false);
 
         // Get current user
@@ -61,7 +62,8 @@ public class FromTab extends Fragment {
         fromEmptyList = (TextView) view.findViewById(R.id.fromemptylisttext);
 
         // Populate listView with data from FireBase
-        tm.setDatabaseListenerForListView("from", fromListView, groupId, groupName, fromEmptyList, getContext(), mDatabase, user);
+        tm.setDatabaseListenerForListView("from", fromListView, groupId, groupName,
+                fromEmptyList, getContext());
 
         return view;
     }

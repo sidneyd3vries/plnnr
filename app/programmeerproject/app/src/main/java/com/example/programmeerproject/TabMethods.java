@@ -8,10 +8,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -59,12 +61,15 @@ public class TabMethods {
                                                final String groupId,
                                                final String groupName,
                                                final TextView empty,
-                                               final Context ctx,
-                                               final DatabaseReference mDatabase,
-                                               final FirebaseUser user) {
+                                               final Context ctx) {
         /* Gets data from database and calls populateList to populate the listViews with
         data from the database
          */
+
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        final FirebaseUser user = mAuth.getCurrentUser();
+        final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+
         final HashMap<String, ArrayList<String>> count = new HashMap<>();
         DatabaseReference dbRef = mDatabase.child("data").child(groupId).child(dir);
         dbRef.addValueEventListener(new ValueEventListener() {
@@ -108,7 +113,6 @@ public class TabMethods {
 
         // Set onClickListener
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
             @Override
             public void onItemClick(AdapterView<?> parent, View vw, int position, long id) {
                 int viewId = lv.getId();
@@ -161,20 +165,25 @@ public class TabMethods {
                         }
                     }
                 }
-                // If users id is in the list of people who voted, remove vote
-                // Else add vote of user to item
-                if (uids.contains(user.getUid())) {
-                    Toast.makeText(ctx, "Vote removed", Toast.LENGTH_SHORT).show();
-                    db.child(user.getUid()).removeValue();
-                } else {
-                    Toast.makeText(ctx, "Vote added", Toast.LENGTH_SHORT).show();
-                    db.child(user.getUid()).setValue(true);
-                }
+                vote(user, ctx, db, uids);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Toast.makeText(ctx, "Database error", Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    public void vote(FirebaseUser user, Context ctx, DatabaseReference db, ArrayList<String> uids) {
+        /*If users id is in the list of people who voted, remove
+        vote. Else add vote of user to item
+         */
+        if (uids.contains(user.getUid())) {
+            Toast.makeText(ctx, "Vote removed", Toast.LENGTH_SHORT).show();
+            db.child(user.getUid()).removeValue();
+        } else {
+            Toast.makeText(ctx, "Vote added", Toast.LENGTH_SHORT).show();
+            db.child(user.getUid()).setValue(true);
+        }
     }
 }

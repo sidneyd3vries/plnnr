@@ -59,7 +59,7 @@ public class ToTab extends Fragment {
         // Set group name by using method (onDataChange methods
         // can't return)
         tm.getGroupNameFromId(groupId, getContext(), mDatabase);
-        tm.setDatabaseListenerForListView("to", toListView, groupId, groupName, toEmptyList, getContext(), mDatabase, user);
+        tm.setDatabaseListenerForListView("to", toListView, groupId, groupName, toEmptyList, getContext());
 
         return view;
     }

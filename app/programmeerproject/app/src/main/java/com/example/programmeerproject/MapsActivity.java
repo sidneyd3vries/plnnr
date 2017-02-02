@@ -114,6 +114,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     Marker mCurrLocationMarker;
 
+    MapsMethods mm = new MapsMethods();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -137,8 +139,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Find and set up spinners
         fromspinner = (Spinner) findViewById(R.id.fromspinner);
         tospinner = (Spinner) findViewById(R.id.tospinner);
-        initSpinner(fromspinner, types, fromadapter);
-        initSpinner(tospinner, types, toadapter);
+        initSpinner(fromspinner, types);
+        initSpinner(tospinner, types);
 
         // Get FireBase instance, database and current user
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -255,8 +257,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onConnected(Bundle connectionHint) {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000);
-        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(10000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -268,9 +270,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onConnectionSuspended(int i) { }
 
-    public void initSpinner(Spinner spinner, String[] stringArray, ArrayAdapter<String> aAdapter) {
+    public void initSpinner(Spinner spinner, String[] stringArray) {
         /* Set up spinners and onItemSelectedListener */
-        aAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stringArray);
+        ArrayAdapter<String> aAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stringArray);
         aAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(aAdapter);
         spinner.setOnItemSelectedListener(this);
@@ -451,16 +453,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setUpGoogleApiClient();
 
         //Initialize Google Play Services
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                mMap.setMyLocationEnabled(true);
-            }
-        }
-        else {
-            mMap.setMyLocationEnabled(true);
-        }
+        mm.checkGooglePlayServices(mMap, this);
 
         // Set up listener
         mMap.setOnMapClickListener(this);
@@ -554,7 +547,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 "Select a location by clicking the map. Press go to search your categories.",
                 Snackbar.LENGTH_INDEFINITE);
 
-        snackBar.setAction("Got it", new View.OnClickListener() {
+        snackBar.setAction("Got it!", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 snackBar.dismiss();
@@ -572,17 +565,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         //Place current location marker
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-        mMap.addMarker(new MarkerOptions().position(latLng).title("Current position"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
-
-        lat = location.getLatitude();
-        lng = location.getLongitude();
-
-        //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        mm.getLocation(mMap, location);
 
         //stop location updates
         if (mGoogleApiClient != null) {

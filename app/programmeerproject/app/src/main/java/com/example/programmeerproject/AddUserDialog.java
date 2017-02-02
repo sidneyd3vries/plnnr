@@ -29,33 +29,33 @@ import java.util.Objects;
 public class AddUserDialog extends Activity implements View.OnClickListener{
 
     EditText userEmail;
-    String groupId;
     String groupName;
+    String groupId;
 
-    private DatabaseReference mDatabase;
     private FirebaseUser user;
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_user_dialog);
 
-        // Get data from intent
-        Intent intent = getIntent();
-        groupId = intent.getStringExtra("groupid");
-        groupName = intent.getStringExtra("groupname");
-
         // Get current user
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        // Get data from intent
+        Intent intent = getIntent();
+        groupId = intent.getStringExtra("groupid");
+        groupName = intent.getStringExtra("groupname");
 
         // Find views
         findViewById(R.id.adduserbutton).setOnClickListener(this);
         userEmail = (EditText) findViewById(R.id.adduseredittext);
     }
 
-    public void addUser() {
+    public void addUserCheck() {
         /* Adds valid user to existing group */
         final String email = userEmail.getText().toString();
         // Make database reference
@@ -72,14 +72,7 @@ public class AddUserDialog extends Activity implements View.OnClickListener{
                 }
                 // Add user to group if user is not null
                 if (userid != null) {
-                    mDatabase.child("groups").child(groupId).child(userid).setValue(true);
-                    Toast.makeText(AddUserDialog.this, "Added to " + groupName, Toast.LENGTH_SHORT).show();
-                    // Make and start intent
-                    Intent intent = new Intent(getApplicationContext(), PinboardTabActivity.class);
-                    intent.putExtra("groupid", groupId);
-                    intent.putExtra("groupname", groupName);
-                    startActivity(intent);
-                    finish();
+                    addUser(userid);
                 } else {
                     Toast.makeText(AddUserDialog.this, "User not found", Toast.LENGTH_SHORT).show();
                 }
@@ -91,11 +84,24 @@ public class AddUserDialog extends Activity implements View.OnClickListener{
         });
     }
 
+    public void addUser(String userid) {
+        /* Actually adds user to group */
+        mDatabase.child("groups").child(groupId).child(userid).setValue(true);
+        Toast.makeText(AddUserDialog.this, "Added to " + groupName, Toast.LENGTH_SHORT).show();
+
+        // Make and start intent
+        Intent intent = new Intent(getApplicationContext(), PinboardTabActivity.class);
+        intent.putExtra("groupid", groupId);
+        intent.putExtra("groupname", groupName);
+        startActivity(intent);
+        finish();
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.adduserbutton:
-                addUser();
+                addUserCheck();
                 break;
             default:
                 break;
