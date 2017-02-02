@@ -1,0 +1,7 @@
+exclude:
+- /app/programmeerproject/app/src/androidTest/java/com/example/programmeerproject/ExampleInstrumentedTest.java
+- /app/programmeerproject/app/src/main/java/com/example/programmeerproject/FragmentTest.java
+- /app/programmeerproject/app/src/test/java/com/example/programmeerproject/ExampleUnitTest.java
+component_depth: 1
+languages:
+- java
