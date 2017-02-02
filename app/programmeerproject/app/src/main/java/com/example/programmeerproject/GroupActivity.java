@@ -100,98 +100,20 @@ public class GroupActivity extends AppCompatActivity implements
 
             // Get useruidmap which gets the groups of current users
             // and then populates the listview
-            getUserUidMap();
+            getUserIdMap();
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Clear HashMap and ArrayLists to remove old data
+        // Clear HashMaps and ArrayLists to remove old data
         groupMembers = new LinkedHashMap<>();
+        userMap = new LinkedHashMap<>();
         mGroupNames = new ArrayList<>();
         mGroupIds = new ArrayList<>();
         // Reload data and repopulate list
-        getUserUidMap();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        /* Creates overflow menu in toolbar */
-        getMenuInflater().inflate(R.menu.group_overflow_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        /* OnClickListener for overflow menu */
-        switch (item.getItemId()) {
-            case R.id.signout:
-                Toast.makeText(getApplicationContext(), getString(R.string.signed_out), Toast.LENGTH_SHORT).show();
-                signOut();
-                finish();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    public void setUpFab() {
-        /* Sets up floating action button with onClick method to go to NewGroupDialog */
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.addgroupfab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                startActivity(new Intent(GroupActivity.this, NewGroupDialog.class));
-            }
-        });
-    }
-
-    public void setUpListView(final LinkedHashMap<String, ArrayList<String>> values, final ListView view) {
-        /* Sets up listview with groups the user is part of. Is called in getUserGroups()
-         User GroupListAdapter to populate view with HashMap
-         */
-        GroupListAdapter adapter = new GroupListAdapter(values);
-
-        // Show or hide textview that indicates if a list is empty
-        if (values.size() == 0) {
-            emptyList.setVisibility(View.VISIBLE);
-        } else {
-            emptyList.setVisibility(View.GONE);
-        }
-
-        // Set adapter and onItemClickListener
-        view.setAdapter(adapter);
-        view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View vw,
-                                    int position, long id) {
-                Intent intent = new Intent(GroupActivity.this, PinboardTabActivity.class);
-                intent.putExtra("groupid", mGroupIds.get(position));
-                intent.putExtra("groupname", mGroupNames.get(position));
-                startActivity(intent);
-            }
-        });
-    }
-
-    public void updateUserIds() {
-        /* Adds user's id and their email to userids section in database */
-        mDatabase.child("userids/").child(user.getUid()).setValue(user.getEmail());
-    }
-
-    private void signOut() {
-        /* Signs user out */
-        // Firebase sign out
-        FirebaseAuth.getInstance().signOut();
-        // Google sign out
-        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
-                new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
-                        Intent intent = new Intent(getApplicationContext(), SignInActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(intent);
-                    }
-                });
+        getUserIdMap();
     }
 
     @Override
@@ -224,7 +146,104 @@ public class GroupActivity extends AppCompatActivity implements
         }
     }
 
-    public void getUserUidMap() {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        /* Creates overflow menu in toolbar */
+        getMenuInflater().inflate(R.menu.group_overflow_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        /* OnClickListener for overflow menu */
+        switch (item.getItemId()) {
+            case R.id.signout:
+                Toast.makeText(getApplicationContext(), getString(R.string.signed_out), Toast.LENGTH_SHORT).show();
+                signOut();
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(getApplicationContext(),
+                "Connection failed", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[],
+                                           int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // Permission was granted.
+                    if (ContextCompat.checkSelfPermission(this,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+
+                        if (mGoogleApiClient == null) {
+                            setUpGoogleApiClient();
+                        }
+                    }
+                } else {
+                    // Permission denied, Disable the functionality that depends on this permission.
+                    Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+        }
+    }
+
+    public void setUpFab() {
+        /* Sets up floating action button with onClick method to go to NewGroupDialog */
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.addgroupfab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startActivity(new Intent(GroupActivity.this, NewGroupDialog.class));
+            }
+        });
+    }
+
+    public void setUpListView(final LinkedHashMap<String, ArrayList<String>> values,
+                              final ListView view) {
+        /* Sets up listview with groups the user is part of. Is called in getUserGroups()
+         User GroupListAdapter to populate view with HashMap
+         */
+        GroupListAdapter adapter = new GroupListAdapter(values);
+
+        // Show or hide textview that indicates if a list is empty
+        if (values.size() == 0) {
+            emptyList.setVisibility(View.VISIBLE);
+        } else {
+            emptyList.setVisibility(View.GONE);
+        }
+
+        // Set adapter and onItemClickListener
+        view.setAdapter(adapter);
+        view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View vw,
+                                    int position, long id) {
+                Intent intent = new Intent(GroupActivity.this, PinboardTabActivity.class);
+                intent.putExtra("groupid", mGroupIds.get(position));
+                intent.putExtra("groupname", mGroupNames.get(position));
+                startActivity(intent);
+            }
+        });
+    }
+
+    public void updateUserIds() {
+        /* Adds user's id and their email to userids section in database */
+        mDatabase.child("userids/").child(user.getUid()).setValue(user.getEmail());
+    }
+
+    public void getUserIdMap() {
         /* Gets map of userid and user email. Map is used to show who is part of the group */
         DatabaseReference userids = mDatabase.child("userids");
         userids.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -239,7 +258,8 @@ public class GroupActivity extends AppCompatActivity implements
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(GroupActivity.this, "Database error", Toast.LENGTH_SHORT).show();
+                Toast.makeText(GroupActivity.this,
+                        "Database error", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -277,10 +297,6 @@ public class GroupActivity extends AppCompatActivity implements
         });
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
-    }
 
     public void setUpGoogleApiClient() {
         /* Build google api client with correct api's */
@@ -300,6 +316,22 @@ public class GroupActivity extends AppCompatActivity implements
                 .addApi(LocationServices.API)
                 .enableAutoManage(this, this)
                 .build();
+    }
+
+    private void signOut() {
+        /* Signs user out */
+        // Firebase sign out
+        FirebaseAuth.getInstance().signOut();
+        // Google sign out
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        Intent intent = new Intent(getApplicationContext(), SignInActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
+                });
     }
 
     public boolean checkLocationPermission(){
@@ -331,29 +363,4 @@ public class GroupActivity extends AppCompatActivity implements
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // Permission was granted.
-                    if (ContextCompat.checkSelfPermission(this,
-                            android.Manifest.permission.ACCESS_FINE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED) {
-
-                        if (mGoogleApiClient == null) {
-                            setUpGoogleApiClient();
-                        }
-                    }
-                } else {
-                    // Permission denied, Disable the functionality that depends on this permission.
-                    Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show();
-                }
-                return;
-            }
-        }
-    }
 }

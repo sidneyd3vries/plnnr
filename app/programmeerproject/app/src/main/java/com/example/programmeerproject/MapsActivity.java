@@ -106,9 +106,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     String fromtext;
     String totext;
 
-    ArrayAdapter<String> fromadapter;
-    ArrayAdapter<String> toadapter;
-
     LocationRequest mLocationRequest;
     Location mLastLocation;
 
@@ -187,6 +184,157 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mGoogleApiClient.stopAutoManage(this);
         mGoogleApiClient.disconnect();
     }
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(10000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi
+                    .requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) { }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(this, "Connection failed",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onMapClick(LatLng point) {
+        /* Map click listener, used to place own marker */
+        mMap.clear();
+
+        // Add marker on clicked point
+        mMap.addMarker(new MarkerOptions().position(point)
+                .icon(BitmapDescriptorFactory
+                .defaultMarker(BitmapDescriptorFactory.HUE_RED)))
+                .setTag(true);
+
+        // Set global lat and lng
+        lat = point.latitude;
+        lng = point.longitude;
+
+        // Hide detail view
+        hideDetails();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        setUpGoogleApiClient();
+
+        //Initialize Google Play Services
+        mm.checkGooglePlayServices(mMap, this);
+
+        // Set up listener
+        mMap.setOnMapClickListener(this);
+
+        // Set marker on current location
+        if (lat != null || lng != null) {
+            LatLng latLng = new LatLng(lat, lng);
+            mMap.addMarker(new MarkerOptions().position(latLng));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
+            // If location is not available, show the whole country
+        } else {
+            LatLng netherlands = new LatLng(52.370216, 4.895168);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(netherlands, 8));
+        }
+
+        // Marker click listener
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                // If marker is not own placed marker, show details
+                if (Objects.equals(marker.getTag(), true)) {
+                    Toast.makeText(MapsActivity.this,
+                            "Own marker", Toast.LENGTH_SHORT).show();
+                } else {
+                    try {
+                        showDetails(marker);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+        if (mCurrLocationMarker != null) {
+            mCurrLocationMarker.remove();
+        }
+
+        //Place current location marker
+        mm.getLocation(mMap, location);
+
+        //stop location updates
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi
+                    .removeLocationUpdates(mGoogleApiClient, this);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        /* Creates overflow menu in toolbar */
+        getMenuInflater().inflate(R.menu.maps_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        /* OnItemSelected of overflow menu */
+        switch (item.getItemId()) {
+            case R.id.mapshelp:
+                showHelp();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) { }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        /* OnItemSelected of spinners */
+        switch (parent.getId()) {
+            case R.id.fromspinner:
+                fromitem = parent.getItemAtPosition(position)
+                        .toString().replaceAll(" ", "_").toLowerCase();
+                break;
+            case R.id.tospinner:
+                toitem = parent.getItemAtPosition(position)
+                        .toString().replaceAll(" ", "_").toLowerCase();
+                break;
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.addbutton:
+                TextView namev = (TextView) findViewById(R.id.name);
+                TextView dirv = (TextView) findViewById(R.id.direction);
+                writeToGroupDb((String) namev.getText(), (String) dirv.getText(), groupId);
+                break;
+            default:
+                break;
+        }
+    }
 
     public void setUpGoogleApiClient() {
         /* Build google api client with correct api's */
@@ -206,18 +354,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.mapSearch);
         fab.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Get text from edittextx
+                // Get text from edittext
                 fromtext = fromedittext.getText().toString();
                 totext = toedittext.getText().toString();
 
                 // If user marked no location, tell them
                 if (lat == null || lng == null) {
-                    Toast.makeText(getApplicationContext(), "Need location", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),
+                            "Need location", Toast.LENGTH_SHORT).show();
                 } else {
                     // If spinners have same category and editTexts are empty, tell user
                     // spinners cant be same category
-                    if (Objects.equals(fromitem, toitem) && Objects.equals(fromtext, "") && Objects.equals(totext, "")) {
-                        Toast.makeText(getApplicationContext(), "Same category", Toast.LENGTH_SHORT).show();
+                    if (Objects.equals(fromitem, toitem) && Objects.equals(fromtext, "")
+                            && Objects.equals(totext, "")) {
+                        Toast.makeText(getApplicationContext(),
+                                "Same category", Toast.LENGTH_SHORT).show();
                     } else {
                         // Here input is valid, so clear previous results from map
                         mMap.clear();
@@ -254,25 +405,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(10000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) { }
-
     public void initSpinner(Spinner spinner, String[] stringArray) {
         /* Set up spinners and onItemSelectedListener */
-        ArrayAdapter<String> aAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stringArray);
+        ArrayAdapter<String> aAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, stringArray);
         aAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(aAdapter);
         spinner.setOnItemSelectedListener(this);
@@ -289,7 +425,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void prepareQuery(boolean fromtext, boolean totext) {
         /* Set from and to queries matching with filled in editTexts */
-        // TODO use pagetoken to get more than 20 results
         // If editText is filled in, use data from there
         // Else use data from spinner
         if (fromtext) {
@@ -356,7 +491,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         for(int n = 0; n < array.length(); n++) {
             try {
                 JSONObject object = array.getJSONObject(n);
-                Marker marker = mMap.addMarker(new MarkerOptions().position(getCoordinates(object))
+                Marker marker = mMap.addMarker(new MarkerOptions()
+                        .position(getCoordinates(object))
                         .title(getName(object))
                         .icon(BitmapDescriptorFactory.defaultMarker(color)));
                 object.put("direction", dir);
@@ -382,16 +518,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onDataChange(DataSnapshot snapshot) {
                 if (!snapshot.hasChild(stripInput(place))) {
                     // If items doesn't exist in database, add it
-                    mDatabase.child("data").child(groupId).child(dir).child(stripInput(place)).child("place").setValue("holder");
+                    mDatabase.child("data").child(groupId).child(dir)
+                            .child(stripInput(place)).child("place").setValue("holder");
                     Toast.makeText(getApplicationContext(), "Added", Toast.LENGTH_SHORT).show();
                 } else {
                     // Item is already in database, so tell the user
-                    Toast.makeText(getApplicationContext(), "Item already exists", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),
+                            "Item already exists", Toast.LENGTH_SHORT).show();
                 }
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(MapsActivity.this, "Database error", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapsActivity.this,
+                        "Database error", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -428,119 +567,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         layout.setVisibility(View.INVISIBLE);
     }
 
-    @Override
-    public void onMapClick(LatLng point) {
-        /* Map click listener, used to place own marker */
-        mMap.clear();
-
-        // Add marker on clicked point
-        mMap.addMarker(new MarkerOptions().position(point)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
-                .setTag(true);
-
-        // Set global lat and lng
-        lat = point.latitude;
-        lng = point.longitude;
-
-        // Hide detail view
-        hideDetails();
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        setUpGoogleApiClient();
-
-        //Initialize Google Play Services
-        mm.checkGooglePlayServices(mMap, this);
-
-        // Set up listener
-        mMap.setOnMapClickListener(this);
-
-        // Set marker on current location
-        if (lat != null || lng != null) {
-            LatLng latLng = new LatLng(lat, lng);
-            mMap.addMarker(new MarkerOptions().position(latLng));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
-        // If location is not available, show the whole country
-        } else {
-            LatLng netherlands = new LatLng(52.370216, 4.895168);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(netherlands, 8));
-        }
-
-        // Marker click listener
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                // If marker is not own placed marker, show details
-                if (Objects.equals(marker.getTag(), true)) {
-                    Toast.makeText(MapsActivity.this, "Own marker", Toast.LENGTH_SHORT).show();
-                } else {
-                    try {
-                        showDetails(marker);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return true;
-            }
-        });
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(this, "Connection failed", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) { }
-
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        /* OnItemSelected of spinners */
-        switch (parent.getId()) {
-            case R.id.fromspinner:
-                fromitem = parent.getItemAtPosition(position).toString().replaceAll(" ", "_").toLowerCase();
-                break;
-            case R.id.tospinner:
-                toitem = parent.getItemAtPosition(position).toString().replaceAll(" ", "_").toLowerCase();
-                break;
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.addbutton:
-                TextView namev = (TextView) findViewById(R.id.name);
-                TextView dirv = (TextView) findViewById(R.id.direction);
-                writeToGroupDb((String) namev.getText(), (String) dirv.getText(), groupId);
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        /* Creates overflow menu in toolbar */
-        getMenuInflater().inflate(R.menu.maps_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        /* OnItemSelected of overflow menu */
-        switch (item.getItemId()) {
-            case R.id.mapshelp:
-                showHelp();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
     public void showHelp() {
         /* Show a small help snackbar to user */
         final Snackbar snackBar = Snackbar.make(findViewById(R.id.mapscontainer),
@@ -555,22 +581,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         })
         .setActionTextColor(Color.WHITE);
         snackBar.show();
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        mLastLocation = location;
-        if (mCurrLocationMarker != null) {
-            mCurrLocationMarker.remove();
-        }
-
-        //Place current location marker
-        mm.getLocation(mMap, location);
-
-        //stop location updates
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
     }
 }
 

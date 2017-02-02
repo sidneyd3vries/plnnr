@@ -183,7 +183,8 @@ public class PinboardTabActivity extends AppCompatActivity implements TabLayout.
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(getApplicationContext(), "Database error", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(),
+                        "Database error", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -128,9 +128,9 @@ public class NewGroupDialog extends Activity implements View.OnClickListener {
         /* Create a group with groupId the userid's of all members sticked together */
         String groupId = TextUtils.join("", uids);
 
-        // Check if group with same id exists
+        // Check if group with same id exists, if yes, add random int to groupId
         if (mDatabase.child("groups").child(groupId).child("name") != null) {
-            groupId = groupId + "1";
+            groupId = groupId + String.valueOf((int )(Math.random() * 10000 + 1));
         }
 
         // Set group Id

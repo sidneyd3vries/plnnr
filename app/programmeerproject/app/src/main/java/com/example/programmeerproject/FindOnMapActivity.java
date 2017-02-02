@@ -118,12 +118,77 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            LocationServices.FusedLocationApi
+                    .requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
     }
 
     @Override
     public void onConnectionSuspended(int i) { }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(this, "Connection error", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        //Initialize Google Play Services
+        mm.checkGooglePlayServices(mMap, this);
+
+        // Set up listener
+        mMap.setOnMapClickListener(this);
+
+        if (lat != null || lng != null) {
+            LatLng latLng = new LatLng(lat, lng);
+            mMap.addMarker(new MarkerOptions().position(latLng).title("My location"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
+        }
+
+        // Add marker of place and current location
+        try {
+            String json = queryJson(prepareTextQuery(placeName));
+            addMarker(json);
+            fillDetailView(json);
+        } catch (ExecutionException | InterruptedException | JSONException e) {
+            e.printStackTrace();
+        }
+
+        // Marker click listener
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Toast.makeText(FindOnMapActivity.this,
+                        marker.getTitle(), Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) { }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        /* Responsible for adding current location marker to map if current
+         location is available
+         */
+        mLastLocation = location;
+        if (mCurrLocationMarker != null) {
+            mCurrLocationMarker.remove();
+        }
+
+        //Place current location marker
+        mm.getLocation(mMap, location);
+
+        //stop location updates
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.
+                    removeLocationUpdates(mGoogleApiClient, this);
+        }
+    }
 
     public void setUpGoogleApiClient() {
         /* Builds google api client with correct api's */
@@ -139,7 +204,8 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
     public String prepareTextQuery(String name) {
         /* Returns correctly formatted query to be used in the api search */
         String formattedName = name.replaceAll("[^a-zA-Z0-9 ]", "").replaceAll(" ","+");
-        return "https://maps.googleapis.com/maps/api/place/textsearch/json?query=" + formattedName + "&key=" + apikey;
+        return "https://maps.googleapis.com/maps/api/place/textsearch/json?query="
+                + formattedName + "&key=" + apikey;
     }
 
     public String queryJson(String url) throws ExecutionException, InterruptedException {
@@ -208,68 +274,6 @@ public class FindOnMapActivity extends AppCompatActivity implements OnMapReadyCa
         } else {
             final int rating = result.getInt("rating");
             ratingView.setNumStars(rating);
-        }
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(this, "Connection error", Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        //Initialize Google Play Services
-        mm.checkGooglePlayServices(mMap, this);
-
-        // Set up listener
-        mMap.setOnMapClickListener(this);
-
-        if (lat != null || lng != null) {
-            LatLng latLng = new LatLng(lat, lng);
-            mMap.addMarker(new MarkerOptions().position(latLng).title("My location"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
-        }
-
-        // Add marker of place and current location
-        try {
-            String json = queryJson(prepareTextQuery(placeName));
-            addMarker(json);
-            fillDetailView(json);
-        } catch (ExecutionException | InterruptedException | JSONException e) {
-            e.printStackTrace();
-        }
-
-        // Marker click listener
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                Toast.makeText(FindOnMapActivity.this, marker.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
-            }
-        });
-    }
-
-    @Override
-    public void onMapClick(LatLng latLng) { }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        /* Responsible for adding current location marker to map if current
-         location is available
-         */
-        mLastLocation = location;
-        if (mCurrLocationMarker != null) {
-            mCurrLocationMarker.remove();
-        }
-
-        //Place current location marker
-        mm.getLocation(mMap, location);
-
-        //stop location updates
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
     }
 }

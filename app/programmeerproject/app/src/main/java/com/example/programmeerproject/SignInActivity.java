@@ -168,7 +168,6 @@ public class SignInActivity extends AppCompatActivity implements
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             updateUI(true);
-            //signOut();
         } else {
             // Signed out, show unauthenticated UI.
             updateUI(false);

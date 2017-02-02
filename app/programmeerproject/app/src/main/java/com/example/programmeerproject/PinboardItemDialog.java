@@ -65,11 +65,13 @@ public class PinboardItemDialog extends Activity implements View.OnClickListener
 
     public void deleteFromDb(final String name, final String dir) {
         /* Deletes selected item from database after asking if the user is sure of it */
-        Snackbar.make(findViewById(android.R.id.content), "Are you sure you want to delete this item?", Snackbar.LENGTH_LONG)
+        Snackbar.make(findViewById(android.R.id.content),
+                "Are you sure you want to delete this item?", Snackbar.LENGTH_LONG)
                 .setAction("Yes!", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        DatabaseReference toDelete = mDatabase.child("data").child(groupId).child(dir).child(name);
+                        DatabaseReference toDelete = mDatabase.child("data")
+                                .child(groupId).child(dir).child(name);
                         toDelete.setValue(null);
                         returnHome();
                     }
