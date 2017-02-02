@@ -48,3 +48,6 @@ More code restructuring and did some changes to the UI of the app. I changed the
 
 # Day 18
 Working on report and more code restructuring
+
+# Day 19
+More refactoring working with the report from bettercodehub. Minor problems with code moved to other classes, but nothing major.
